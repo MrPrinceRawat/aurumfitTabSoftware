@@ -1,6 +1,6 @@
 import 'dart:io';
-
-import 'package:aurumfit/home.dart';
+import 'package:aurumfit/pages/Auth/login.dart';
+import 'package:aurumfit/pages/home/home.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -23,12 +23,14 @@ class MyHttpOverrides extends HttpOverrides {
 }
 
 class App extends StatelessWidget {
+  const App({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return CupertinoApp(
       theme: CupertinoThemeData(brightness: Brightness.dark),
       title: 'Aurum Fitness',
-      home: Home(),
+      home: Signin(),
       debugShowCheckedModeBanner: false,
       localizationsDelegates: [
         DefaultMaterialLocalizations.delegate,

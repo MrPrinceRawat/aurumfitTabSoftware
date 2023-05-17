@@ -1,12 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:ui';
-import 'package:aurumfit/dynamicPayment.dart';
+import 'package:aurumfit/pages/payments/dynamicPayment.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
-import 'package:aurumfit/BLOC/serverRelated.dart';
+import 'package:aurumfit/domians/usermanagement/serverRelated.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/intl.dart';
 

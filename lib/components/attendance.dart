@@ -1,16 +1,17 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:aurumfit/BLOC/serverRelated.dart';
+import 'package:aurumfit/domians/usermanagement/serverRelated.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class AttendanceWidget extends StatefulWidget {
+class AttendanceWidget extends ConsumerStatefulWidget {
   const AttendanceWidget({Key? key}) : super(key: key);
 
   @override
-  State<AttendanceWidget> createState() => _AttendanceWidgetState();
+  _AttendanceWidgetState createState() => _AttendanceWidgetState();
 }
 
-class _AttendanceWidgetState extends State<AttendanceWidget> {
+class _AttendanceWidgetState extends ConsumerState<AttendanceWidget> {
   var attendances = [];
 
   @override
@@ -20,7 +21,7 @@ class _AttendanceWidgetState extends State<AttendanceWidget> {
   }
 
   atten() async {
-    var attendance = await getAttendances();
+    var attendance = await getAttendances(ref);
 
     if (attendance["error"]) {
       print(attendance["message"]);

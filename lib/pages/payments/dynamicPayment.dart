@@ -1,13 +1,15 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:aurumfit/UI/failurepromptadpater.dart';
+import 'package:aurumfit/components/failurepromptadpater.dart';
+import 'package:aurumfit/providers/auth/authprovider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
-class DynamicQrCode extends StatefulWidget {
+class DynamicQrCode extends ConsumerStatefulWidget {
   const DynamicQrCode({Key? key, this.userid}) : super(key: key);
 
   final String? userid;
@@ -16,7 +18,7 @@ class DynamicQrCode extends StatefulWidget {
   _DynamicQrCodeState createState() => _DynamicQrCodeState();
 }
 
-class _DynamicQrCodeState extends State<DynamicQrCode> {
+class _DynamicQrCodeState extends ConsumerState<DynamicQrCode> {
   var amount = TextEditingController();
   var total = TextEditingController();
   var months = TextEditingController();
@@ -33,11 +35,13 @@ class _DynamicQrCodeState extends State<DynamicQrCode> {
   String qrId = "";
   bool going = true;
   bool _loading = false;
+  var paymentType = "Partial Payment";
+  String token = "";
 
   @override
   void initState() {
     super.initState();
-
+    token = ref.read(AuthTokenProvider.notifier).state;
     if (widget.userid != null) {
       _userid = widget.userid;
       getUserInfo(_userid);
@@ -55,7 +59,7 @@ class _DynamicQrCodeState extends State<DynamicQrCode> {
       final http.Response response = await http.post(url, body: {
         "userid": _userid,
       }, headers: {
-        "Authorization": "Token 38bc32c9730b26e11b45f640aaef804c00c0c325",
+        "Authorization": "Token $token",
       });
       final Map<String, dynamic> responseData = json.decode(response.body);
 
@@ -203,16 +207,222 @@ class _DynamicQrCodeState extends State<DynamicQrCode> {
         "amount": amount.text,
         "plan": plan.text,
         "duration": months.text,
-        "subtotal": total.text
+        "subtotal": total.text,
+        "invoiceid": ""
       };
-      print(data);
       var url = Uri.parse(
           "https://backend.aurum.fitness/auth/CreateOrderForRazorPay/");
       var body = json.encode(data);
       await http
           .post(url, body: body, headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Token 38bc32c9730b26e11b45f640aaef804c00c0c325'
+            'Authorization': 'Token $token'
+          })
+          .then((value) => json.decode(value.body))
+          .then((value) async {
+            print(value);
+            if (PM == "Qr Code") {
+              print("QR Code");
+              var uri =
+                  Uri.parse("https://api.razorpay.com/v1/payments/qr_codes");
+              await http
+                  .post(uri,
+                      headers: {
+                        'Authorization':
+                            'Basic cnpwX2xpdmVfYzlEUlJKdzdqNjJ1R0c6WllpdDhkSHpLbUxkbjJUbllwdVEwVXls',
+                        'Content-Type': 'application/json'
+                      },
+                      body: json.encode({
+                        "type": "upi_qr",
+                        "name": _userid,
+                        "usage": "single_use",
+                        "fixed_amount": true,
+                        "payment_amount": amount.text + "00",
+                        "description": "Aurum Fitness",
+                        "notes": {"order_id": value['Order_id']}
+                      }))
+                  .then((value) => json.decode(value.body))
+                  .then((value) {
+                print(value);
+                qrId = value['id'];
+                qrCode = value['image_url'];
+                setState(() {
+                  _loading = false;
+                });
+              });
+              while (going) {
+                await Future.delayed(Duration(seconds: 2));
+                print("Checking");
+                await verifyPayment(qrId).then((value) {
+                  if (value) {
+                    print("Payment Successful");
+                    setState(() {
+                      _loading = false;
+                    });
+                    going = false;
+                    showCupertinoDialog(
+                        context: context,
+                        builder: (_) {
+                          return CupertinoAlertDialog(
+                            title: Text("Success"),
+                            content: Text("Payment Successful"),
+                            actions: <Widget>[
+                              CupertinoDialogAction(
+                                child: Text("Ok"),
+                                onPressed: () {
+                                  setState(() {
+                                    qrCode = "";
+                                  });
+                                  Navigator.pop(_);
+                                },
+                              )
+                            ],
+                          );
+                        });
+                  }
+                });
+              }
+            } else if (PM == "Link") {
+              print("Link");
+              var uri = Uri.parse("https://api.razorpay.com/v1/payment_links/");
+              await http
+                  .post(uri,
+                      headers: {
+                        'Authorization':
+                            'Basic cnpwX2xpdmVfYzlEUlJKdzdqNjJ1R0c6WllpdDhkSHpLbUxkbjJUbllwdVEwVXls',
+                        'Content-Type': 'application/json'
+                      },
+                      body: json.encode({
+                        "upi_link": "true",
+                        "amount": int.parse("${amount.text}00"),
+                        "currency": "INR",
+                        "accept_partial": false,
+                        "description": "Payment for order id " +
+                            value['Order_id'].toString(),
+                        "customer": {
+                          "name": name.text,
+                          "contact": "+91" + phone.text,
+                        },
+                        "notify": {
+                          "sms": true,
+                          "email": false,
+                          "whatsapp": true,
+                        },
+                        "reminder_enable": true,
+                        "notes": {"order_id": value['Order_id']},
+                        "callback_url":
+                            "https://backend.aurum.fitness/signup?&payment_status=success&status_message=Success",
+                        "callback_method": "get"
+                      }))
+                  .then((value) => json.decode(value.body))
+                  .then((value) {
+                print(value);
+                var link = value['short_url'];
+                print(link);
+                // Create a cupertino alert dialog
+                showCupertinoDialog(
+                    context: context,
+                    builder: (_) {
+                      return CupertinoAlertDialog(
+                        title: Text("Payment Link"),
+                        content: Text(link),
+                        actions: <Widget>[
+                          CupertinoDialogAction(
+                            child: const Text('Ok'),
+                            onPressed: () {
+                              Navigator.pop(_);
+                            },
+                          )
+                        ],
+                      );
+                    });
+                setState(() {
+                  _loading = false;
+                });
+              });
+            }
+          });
+    } catch (e, stacktrace) {
+      print(e);
+      print(stacktrace);
+      showErrorDialog(context, e.toString());
+      setState(() {
+        _loading = false;
+      });
+    }
+  }
+
+  handleNewMembership() async {
+    var qrId = "";
+    try {
+      setState(() {
+        _loading = true;
+      });
+      print("Making Payment");
+      var PM = "";
+      await showCupertinoDialog(
+          context: context,
+          builder: (context) {
+            return CupertinoAlertDialog(
+              title: Text('Payment Mode'),
+              content: Text(
+                  'Do you Want a Link or Qr code?\n\nIf you want a link, please select "Link"\n\nIf you want a qr code, please select "Qr code"'),
+              actions: <Widget>[
+                CupertinoDialogAction(
+                  child: Text('Link'),
+                  onPressed: () {
+                    Navigator.pop(context);
+                    PM = "Link";
+                  },
+                ),
+                CupertinoDialogAction(
+                  child: Text('Qr Code'),
+                  onPressed: () {
+                    Navigator.pop(context);
+                    PM = "Qr Code";
+                  },
+                )
+              ],
+            );
+          });
+      var invoiceID = await http.post(
+          Uri.parse("https://backend.aurum.fitness/payments/createInvoice/"),
+          body: json.encode(
+            {
+              "user": _userid,
+              "subtotal": total.text,
+              "plan": plan.text,
+              "duration": months.text,
+              "status": false,
+              "payments": {}
+            },
+          ),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Token $token'
+          });
+      if (!json.decode(invoiceID.body)['success']) {
+        showErrorDialog(context, json.decode(invoiceID.body)['error']);
+        setState(() {
+          _loading = false;
+        });
+        return;
+      }
+      var data = {
+        "user": _userid,
+        "amount": amount.text,
+        "plan": plan.text,
+        "duration": months.text,
+        "subtotal": total.text,
+        "invoiceid": json.decode(invoiceID.body)['InvoiceID'],
+      };
+      var url = Uri.parse(
+          "https://backend.aurum.fitness/auth/CreateOrderForRazorPay/");
+      var body = json.encode(data);
+      await http
+          .post(url, body: body, headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Token $token'
           })
           .then((value) => json.decode(value.body))
           .then((value) async {
@@ -354,7 +564,7 @@ class _DynamicQrCodeState extends State<DynamicQrCode> {
     var response = await http.post(url, body: {
       'name': entered
     }, headers: {
-      "Authorization": "Token 38bc32c9730b26e11b45f640aaef804c00c0c325",
+      "Authorization": "Token $token",
     });
     print((response.body));
     setState(() {
@@ -443,6 +653,34 @@ class _DynamicQrCodeState extends State<DynamicQrCode> {
                                       ],
                                     )),
                               ]),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 20, right: 20),
+                      child: CupertinoSlidingSegmentedControl(
+                          children: <String, Widget>{
+                            "Partial Payment": Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 20),
+                                child: Text(
+                                  'Partial Payment',
+                                  style: TextStyle(
+                                      fontFamily: "SFPro",
+                                      color: CupertinoColors.black),
+                                )),
+                            "New Membership": Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 20),
+                                child: Text(
+                                  'New Membership',
+                                  style: TextStyle(
+                                      fontFamily: "SFPro",
+                                      color: CupertinoColors.black),
+                                )),
+                          },
+                          groupValue: paymentType,
+                          onValueChanged: (String? i) {
+                            setState(() {
+                              paymentType = i ?? "Partial Payment";
+                            });
+                          }),
+                    ),
                     CupertinoFormSection.insetGrouped(
                         header: Text('User Details'),
                         children: [
@@ -682,7 +920,11 @@ class _DynamicQrCodeState extends State<DynamicQrCode> {
                                       );
                                     });
                               } else {
-                                makePayment();
+                                if (paymentType == "Partial Payment") {
+                                  makePayment();
+                                } else {
+                                  handleNewMembership();
+                                }
                               }
                             },
                           )

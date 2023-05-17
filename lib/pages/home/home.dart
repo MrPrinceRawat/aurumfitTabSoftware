@@ -1,14 +1,17 @@
 import 'dart:ui';
 
-import 'package:aurumfit/BLOC/serverRelated.dart';
-import 'package:aurumfit/CFD.dart';
-import 'package:aurumfit/UI/attendance.dart';
-import 'package:aurumfit/dynamicPayment.dart';
-import 'package:aurumfit/search.dart';
-import 'package:aurumfit/utility.dart';
+import 'package:aurumfit/domians/usermanagement/serverRelated.dart';
+import 'package:aurumfit/pages/utility/CFD.dart';
+import 'package:aurumfit/components/attendance.dart';
+import 'package:aurumfit/config/backgrounds.dart';
+import 'package:aurumfit/pages/payments/dynamicPayment.dart';
+import 'package:aurumfit/pages/search/search.dart';
+import 'package:aurumfit/pages/utility/utility.dart';
+import 'package:aurumfit/providers/auth/authprovider.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class Home extends StatelessWidget {
   const Home({Key? key}) : super(key: key);
@@ -84,12 +87,14 @@ class Home extends StatelessWidget {
   }
 }
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends ConsumerStatefulWidget {
+  const HomeScreen({Key? key}) : super(key: key);
+
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  _HomeScreenState createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends ConsumerState<HomeScreen> {
   List<Color> gradientColors = [
     Color.fromARGB(255, 19, 14, 16),
     Color.fromARGB(255, 70, 59, 66),
@@ -97,15 +102,19 @@ class _HomeScreenState extends State<HomeScreen> {
 
   var attendances = [];
   var expired_memberships = [];
+  String defaultBackground = "";
 
   @override
   void initState() {
     super.initState();
     getAtten();
+    getHomePageBackgound();
+    ref.read(AuthTokenProvider);
   }
 
   get_expired_memberships() async {
-    var expired_memberships = await getExpiredMemberships();
+    var expired_memberships =
+        await getExpiredMemberships(ref.read(AuthTokenProvider));
 
     if (expired_memberships["error"]) {
       print(expired_memberships["message"]);
@@ -119,7 +128,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   getAtten() async {
-    var attendance = await getAttendancesCount();
+    var attendance = await getAttendancesCount(ref.read(AuthTokenProvider));
 
     if (attendance["error"]) {
       print(attendance["message"]);
@@ -131,6 +140,20 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  getHomePageBackgound() async {
+    var defaultBackgroundGot = await Backgrounds.getDefaultBackground();
+    if (defaultBackgroundGot == null) {
+      await Backgrounds.setDefaultBackground("home.jpg");
+      setState(() {
+        defaultBackground = "home.jpg";
+      });
+    } else {
+      setState(() {
+        defaultBackground = defaultBackgroundGot;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
@@ -140,7 +163,8 @@ class _HomeScreenState extends State<HomeScreen> {
           height: MediaQuery.of(context).size.height,
           decoration: BoxDecoration(
             image: new DecorationImage(
-              image: new ExactAssetImage('assets/home.jpg'),
+              image: new ExactAssetImage(
+                  'assets/backgrounds/' + defaultBackground),
               fit: BoxFit.cover,
             ),
           ),

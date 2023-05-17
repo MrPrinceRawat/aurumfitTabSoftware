@@ -1,4 +1,5 @@
-import 'package:aurumfit/settings.dart';
+import 'package:aurumfit/pages/settings/changebg.dart';
+import 'package:aurumfit/pages/settings/settings.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -93,6 +94,41 @@ class _CFDState extends State<CFD> {
                                   context,
                                   CupertinoPageRoute(
                                       builder: (context) => PrintServer()));
+                            },
+                          ),
+                          ListTile(
+                            contentPadding: EdgeInsets.only(
+                                left: 30, right: 30, bottom: 20, top: 20),
+                            leading: Container(
+                              padding: EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                  color: Color(0xff2ca3c7),
+                                  border: Border.fromBorderSide(BorderSide(
+                                      color: Color(0xff2ca3c7), width: 2)),
+                                  borderRadius: BorderRadius.circular(10)),
+                              child: Icon(
+                                CupertinoIcons.photo_on_rectangle,
+                                color: Color(0xffffffff),
+                              ),
+                            ),
+                            title: Text(
+                              "Change Default Background",
+                              style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w400,
+                                  color: CupertinoColors.white.withOpacity(.6),
+                                  fontFamily: 'SFPro'),
+                            ),
+                            trailing: Icon(
+                              CupertinoIcons.right_chevron,
+                              color: Color(0xffdedede),
+                            ),
+                            onTap: () {
+                              Navigator.push(
+                                  context,
+                                  CupertinoPageRoute(
+                                      builder: (context) =>
+                                          changeDefaultBackground()));
                             },
                           ),
                         ])))

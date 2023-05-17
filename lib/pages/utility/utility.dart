@@ -1,11 +1,11 @@
 import 'dart:convert';
 
-import 'package:aurumfit/PrintRecipt.dart';
-import 'package:aurumfit/Subscription.dart';
-import 'package:aurumfit/UI/galary.dart';
-import 'package:aurumfit/dynamicPayment.dart';
-import 'package:aurumfit/printInvoice.dart';
-import 'package:aurumfit/tokenQR.dart';
+import 'package:aurumfit/pages/utility/PrintRecipt.dart';
+import 'package:aurumfit/pages/payments/Subscription.dart';
+import 'package:aurumfit/components/galary.dart';
+import 'package:aurumfit/pages/payments/dynamicPayment.dart';
+import 'package:aurumfit/pages/utility/printInvoice.dart';
+import 'package:aurumfit/pages/utility/tokenQR.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';

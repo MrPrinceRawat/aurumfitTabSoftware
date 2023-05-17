@@ -1,7 +1,7 @@
 import 'dart:convert';
-import 'package:aurumfit/addnew.dart';
-import 'package:aurumfit/dynamicPayment.dart';
-import 'package:aurumfit/showInfo.dart';
+import 'package:aurumfit/pages/search/addnew.dart';
+import 'package:aurumfit/pages/payments/dynamicPayment.dart';
+import 'package:aurumfit/pages/search/showInfo.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;

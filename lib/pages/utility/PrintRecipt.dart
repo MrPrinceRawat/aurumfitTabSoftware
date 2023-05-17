@@ -1,19 +1,22 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:aurumfit/BLOC/fileHandling.dart';
-import 'package:aurumfit/BLOC/serverRelated.dart';
+import 'package:aurumfit/components/failurepromptadpater.dart';
+import 'package:aurumfit/domians/storage/fileHandling.dart';
+import 'package:aurumfit/domians/usermanagement/serverRelated.dart';
+import 'package:aurumfit/providers/auth/authprovider.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
-import 'BLOC/serverRelated.dart';
+import '../../domians/usermanagement/serverRelated.dart';
 
-class PrintRecipt extends StatefulWidget {
+class PrintRecipt extends ConsumerStatefulWidget {
   const PrintRecipt({Key? key}) : super(key: key);
 
   @override
   _PrintReciptState createState() => _PrintReciptState();
 }
 
-class _PrintReciptState extends State<PrintRecipt> {
+class _PrintReciptState extends ConsumerState<PrintRecipt> {
   String paymentModeInt = "Cash";
   var plan = new TextEditingController()..text = "Lite";
   int monthsInt = 1;
@@ -33,10 +36,12 @@ class _PrintReciptState extends State<PrintRecipt> {
   var updSocket;
   var printableAvailable = false;
   var autoPrintLoading = false;
+  String token = "";
 
   @override
   void initState() {
-    initServer();
+    // initServer();
+    token = ref.read(AuthTokenProvider.notifier).state;
   }
 
   printAll() async {
@@ -92,7 +97,7 @@ class _PrintReciptState extends State<PrintRecipt> {
             "subtotal": currentElement["subtotal"]
           };
           await PrintGlobal(dataToSend);
-          await markAsPrinted(currentElement["invoiceno"].toString());
+          await markAsPrinted(currentElement["invoiceno"].toString(), token);
         }
       }
       setState(() {
@@ -210,7 +215,7 @@ class _PrintReciptState extends State<PrintRecipt> {
     var response = await http.post(url, body: {
       'name': entered
     }, headers: {
-      "Authorization": "Token 38bc32c9730b26e11b45f640aaef804c00c0c325",
+      "Authorization": "Token $token",
     });
     print((response.body));
     setState(() {
@@ -220,6 +225,7 @@ class _PrintReciptState extends State<PrintRecipt> {
 
   Future<int> getOrderID(int type) async {
     // Check orderid exists
+
     var CheckUrl =
         Uri.parse("https://backend.aurum.fitness/auth/checkorderid/");
     Map checkData = {
@@ -229,11 +235,34 @@ class _PrintReciptState extends State<PrintRecipt> {
     try {
       var response = await http.post(CheckUrl,
           headers: {
-            "Authorization": "Token 38bc32c9730b26e11b45f640aaef804c00c0c325",
+            "Authorization": "Token $token",
           },
           body: checkData);
       var jsonResponse = jsonDecode(response.body);
       if (response.body.contains("OK")) {
+        var invoiceID = await http.post(
+            Uri.parse("https://backend.aurum.fitness/payments/createInvoice/"),
+            body: json.encode(
+              {
+                "user": userId.text,
+                "subtotal": subtotal.text,
+                "plan": plan.text,
+                "duration": monthsInt.toString(),
+                "status": false,
+                "payments": {}
+              },
+            ),
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Token $token'
+            });
+        if (!json.decode(invoiceID.body)['success']) {
+          showErrorDialog(context, json.decode(invoiceID.body)['error']);
+          setState(() {
+            _loading = false;
+          });
+          return 0;
+        }
         // Create ORDERID
         // var ServerUrl =
         //     Uri.parse("http://127.0.0.1:8000/auth/order/" + type.toString());
@@ -248,12 +277,12 @@ class _PrintReciptState extends State<PrintRecipt> {
           "method": paymentModeInt,
           "start": startDate.text,
           'msgNumber': phone.text,
+          "invoiceid": json.decode(invoiceID.body)['InvoiceID'],
         };
         try {
           var response = await http.post(ServerUrl,
               headers: {
-                "Authorization":
-                    "Token 38bc32c9730b26e11b45f640aaef804c00c0c325",
+                "Authorization": "Token $token",
               },
               body: orderData);
           var jsonResponse = jsonDecode(response.body);
@@ -289,6 +318,29 @@ class _PrintReciptState extends State<PrintRecipt> {
         }
         return 0;
       } else {
+        var invoiceID = await http.post(
+            Uri.parse("https://backend.aurum.fitness/payments/createInvoice/"),
+            body: json.encode(
+              {
+                "user": userId.text,
+                "subtotal": subtotal.text,
+                "plan": plan.text,
+                "duration": monthsInt.toString(),
+                "status": false,
+                "payments": {}
+              },
+            ),
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Token $token'
+            });
+        if (!json.decode(invoiceID.body)['success']) {
+          showErrorDialog(context, json.decode(invoiceID.body)['error']);
+          setState(() {
+            _loading = false;
+          });
+          return 0;
+        }
         await showCupertinoDialog(
             context: context,
             builder: (_) {
@@ -330,13 +382,13 @@ class _PrintReciptState extends State<PrintRecipt> {
                         "method": paymentModeInt,
                         "start": startDate.text,
                         'msgNumber': phone.text,
+                        "invoiceid": json.decode(invoiceID.body)['InvoiceID'],
                       };
                       print(orderData);
                       try {
                         var response = await http.post(ServerUrl,
                             headers: {
-                              "Authorization":
-                                  "Token 38bc32c9730b26e11b45f640aaef804c00c0c325",
+                              "Authorization": "Token $token",
                             },
                             body: orderData);
                         print(response.body);
@@ -388,7 +440,7 @@ class _PrintReciptState extends State<PrintRecipt> {
         "userid": _userid,
         "purpose": "bill",
       }, headers: {
-        "Authorization": "Token 38bc32c9730b26e11b45f640aaef804c00c0c325",
+        "Authorization": "Token $token",
       });
       final Map<String, dynamic> responseData = json.decode(response.body);
 
@@ -449,11 +501,9 @@ class _PrintReciptState extends State<PrintRecipt> {
       "months": monthsInt.toString(),
       "invoiceno": orderId,
       "subtotal": subtotal.text,
-      "start": startDate,
+      "start": startDate.text,
     };
     var body = json.encode(data);
-    print(body);
-    print(url);
     var response = await http.post(url, body: body, headers: {
       "Accept": "application/json",
       "Content-Type": "application/json"
@@ -567,19 +617,11 @@ class _PrintReciptState extends State<PrintRecipt> {
                     fontSize: 20)),
             trailing: _loading
                 ? CupertinoActivityIndicator()
-                : serverStatus == "F"
-                    ? CupertinoButton(
-                        padding: EdgeInsets.zero,
-                        child: Text("Print",
-                            style:
-                                TextStyle(fontFamily: "SFPro", fontSize: 18)),
-                        onPressed: CheckAllFilled() ? printRecept : null)
-                    : CupertinoButton(
-                        padding: EdgeInsets.zero,
-                        child: Text("Save",
-                            style:
-                                TextStyle(fontFamily: "SFPro", fontSize: 18)),
-                        onPressed: CheckAllFilled() ? save : null)),
+                : CupertinoButton(
+                    padding: EdgeInsets.zero,
+                    child: Text("Save",
+                        style: TextStyle(fontFamily: "SFPro", fontSize: 18)),
+                    onPressed: CheckAllFilled() ? save : null)),
         child: SafeArea(
             child: _loading
                 ? Container(

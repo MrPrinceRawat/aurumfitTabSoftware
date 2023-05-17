@@ -1,13 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:ui';
-import 'package:aurumfit/BLOC/authHandler.dart';
-import 'package:aurumfit/BLOC/serverRelated.dart';
+import 'package:aurumfit/domians/auth/authHandler.dart';
+import 'package:aurumfit/domians/usermanagement/serverRelated.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:aurumfit/dynamicPayment.dart';
+import 'package:aurumfit/pages/payments/dynamicPayment.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';

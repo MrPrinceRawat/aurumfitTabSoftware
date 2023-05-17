@@ -1,16 +1,17 @@
 import 'dart:convert';
-import 'dart:io';
-
+import 'package:aurumfit/providers/auth/authprovider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 checkforPendingPrintables() async {
   var status = false;
+  final token = AuthTokenProvider.read;
   var url = Uri.parse(
       "https://backend.aurum.fitness/api/isPendingPrintAvailable/check");
   await http
       .get(url, headers: {
-        "Authorization": "Token 38bc32c9730b26e11b45f640aaef804c00c0c325",
+        "Authorization": "Token $token",
       })
       .then((value) => jsonDecode(value.body))
       .then((value) {
@@ -36,13 +37,13 @@ fetchforPendingPrintables() async {
   return status;
 }
 
-markAsPrinted(orderid) async {
+markAsPrinted(orderid, token) async {
   var url = Uri.parse("https://backend.aurum.fitness/api/order/" +
       orderid.toString() +
       "/markPrinted");
   http
       .get(url, headers: {
-        "Authorization": "Token 38bc32c9730b26e11b45f640aaef804c00c0c325",
+        "Authorization": "Token $token",
       })
       .then((value) => jsonDecode(value.body))
       .then((value) {
@@ -184,18 +185,20 @@ markUserAttendance(userid, token) async {
   }
 }
 
-getAttendances() async {
+getAttendances(ref) async {
   var date = DateTime.now().year.toString() +
       "-" +
       DateTime.now().month.toString() +
       "-" +
       DateTime.now().day.toString();
+  final token = ref.read(AuthTokenProvider.notifier).state;
+  print("token: $token");
   var url =
       Uri.parse("https://backend.aurum.fitness/api/api/$date/getAttendance");
   var response = await http.get(url, headers: {
     "Accept": "application/json",
     "Content-Type": "application/json",
-    "Authorization": "Token 38bc32c9730b26e11b45f640aaef804c00c0c325",
+    "Authorization": "Token $token",
   });
   if (jsonDecode(response.body)[0] != "No attendance found.") {
     return {'error': false, 'message': jsonDecode(response.body)};
@@ -205,12 +208,12 @@ getAttendances() async {
 }
 
 // get last 30 days attendance count
-getAttendancesCount() async {
+getAttendancesCount(token) async {
   var url = Uri.parse("https://backend.aurum.fitness/api/getAttendanceCount");
   var response = await http.get(url, headers: {
     "Accept": "application/json",
     "Content-Type": "application/json",
-    "Authorization": "Token 38bc32c9730b26e11b45f640aaef804c00c0c325",
+    "Authorization": "Token $token",
   });
   print(response.body);
   if (jsonDecode(response.body)[0] != "No attendance found.") {
@@ -220,7 +223,7 @@ getAttendancesCount() async {
   }
 }
 
-getExpiredMemberships() async {
+getExpiredMemberships(token) async {
   // var url = Uri.parse("http://127.0.0.1:8000/auth/getExpiredMemberships");
   var url =
       Uri.parse("https://backend.aurum.fitness/api/getExpiredMemberships");
@@ -228,7 +231,7 @@ getExpiredMemberships() async {
   var response = await http.get(url, headers: {
     "Accept": "application/json",
     "Content-Type": "application/json",
-    "Authorization": "Token 38bc32c9730b26e11b45f640aaef804c00c0c325",
+    "Authorization": "Token $token",
   });
   print(response.body);
   if (jsonDecode(response.body)[0] != "No expired memberships found.") {

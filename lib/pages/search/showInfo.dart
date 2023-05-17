@@ -1,19 +1,21 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:ui';
-import 'package:aurumfit/BLOC/authHandler.dart';
-import 'package:aurumfit/BLOC/serverRelated.dart';
+import 'package:aurumfit/domians/auth/authHandler.dart';
+import 'package:aurumfit/domians/usermanagement/serverRelated.dart';
+import 'package:aurumfit/providers/auth/authprovider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:aurumfit/dynamicPayment.dart';
+import 'package:aurumfit/pages/payments/dynamicPayment.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:http/http.dart' as http;
 
-class ShowInfo extends StatefulWidget {
+class ShowInfo extends ConsumerStatefulWidget {
   const ShowInfo({Key? key, required this.userid}) : super(key: key);
 
   final String userid;
@@ -22,7 +24,7 @@ class ShowInfo extends StatefulWidget {
   _ShowInfoState createState() => _ShowInfoState();
 }
 
-class _ShowInfoState extends State<ShowInfo> {
+class _ShowInfoState extends ConsumerState<ShowInfo> {
   final ScrollController scrollController = ScrollController();
   late Future myFuture;
   var _loading = false;
@@ -39,6 +41,7 @@ class _ShowInfoState extends State<ShowInfo> {
   var amount = TextEditingController();
   var dueDate = TextEditingController();
   var user = null;
+  String token = "";
 
   void PrintReciptCopy(data) async {
     setState(() {
@@ -51,7 +54,7 @@ class _ShowInfoState extends State<ShowInfo> {
         }),
         headers: {
           "Content-Type": "application/json",
-          "Authorization": "Token 38bc32c9730b26e11b45f640aaef804c00c0c325",
+          "Authorization": "Token $token",
         });
     var OI = json.decode(response.body);
     var orderid = OI['orderId'];
@@ -113,7 +116,7 @@ class _ShowInfoState extends State<ShowInfo> {
               });
         }
       });
-      await markAsPrinted(orderid);
+      await markAsPrinted(orderid, token);
     }
     setState(() {
       _loading = false;
@@ -128,11 +131,11 @@ class _ShowInfoState extends State<ShowInfo> {
         }),
         headers: {
           "Content-Type": "application/json",
-          "Authorization": "Token 38bc32c9730b26e11b45f640aaef804c00c0c325",
+          "Authorization": "Token $token",
         });
     var data = json.decode(response.body);
-    print(data);
     if (data.length > 0) {
+      data = data["data"];
       showCupertinoModalPopup(
           context: context,
           builder: (context) {
@@ -160,33 +163,6 @@ class _ShowInfoState extends State<ShowInfo> {
                     height: MediaQuery.of(context).size.height * 0.7,
                     child: ListView.builder(
                       itemBuilder: (context, index) {
-                        // return Column(
-                        //   children: [
-                        //     Material(
-                        //       child: ListTile(
-                        //         tileColor: CupertinoColors.white,
-                        //         title: Text(
-                        //           data[index]["type"],
-                        //         ),
-                        //         subtitle: Text(
-                        //           data[index]["date"],
-                        //         ),
-                        //         trailing: Text(
-                        //           "₹ " + data[index]["amount"],
-                        //         ),
-                        //       ),
-                        //     ),
-                        //     Padding(
-                        //       padding: const EdgeInsets.only(
-                        //         left: 50,
-                        //         right: 15,
-                        //       ),
-                        //       child: Divider(
-                        //         color: Colors.grey,
-                        //       ),
-                        //     )
-                        //   ],
-                        // );
                         return StatefulBuilder(
                           builder: ((context, StateSetter expande) {
                             return GestureDetector(
@@ -388,6 +364,7 @@ class _ShowInfoState extends State<ShowInfo> {
   @override
   void initState() {
     super.initState();
+    token = ref.read(AuthTokenProvider.notifier).state;
     myFuture = getUser(widget.userid);
     setState(() {
       userid = widget.userid;
@@ -401,8 +378,7 @@ class _ShowInfoState extends State<ShowInfo> {
       setState(() {
         _image = image;
       });
-      var response = await FileUploadHandler(
-          userid, image.path, "38bc32c9730b26e11b45f640aaef804c00c0c325");
+      var response = await FileUploadHandler(userid, image.path, token);
 
       if (response['error']) {
         showCupertinoDialog(
@@ -483,12 +459,7 @@ class _ShowInfoState extends State<ShowInfo> {
               ],
             ));
     var response = await sendPaymentNotification(
-        userid,
-        data.name,
-        data.Phone_number,
-        amount.text,
-        dueDate.text,
-        "38bc32c9730b26e11b45f640aaef804c00c0c325");
+        userid, data.name, data.Phone_number, amount.text, dueDate.text, token);
     if (response['error']) {
       showCupertinoDialog(
           context: context,
@@ -829,8 +800,7 @@ class _ShowInfoState extends State<ShowInfo> {
                                           attendance_loading = true;
                                         });
                                         var status = await markUserAttendance(
-                                            userid,
-                                            "38bc32c9730b26e11b45f640aaef804c00c0c325");
+                                            userid, token);
                                         setState(() {
                                           attendance_loading = false;
                                         });
@@ -975,7 +945,7 @@ class _ShowInfoState extends State<ShowInfo> {
       var response = await http.post(url, body: {
         'userid': userid
       }, headers: {
-        "Authorization": "Token 38bc32c9730b26e11b45f640aaef804c00c0c325",
+        "Authorization": "Token $token",
       });
       print(response.body);
       if (response.statusCode == 200) {

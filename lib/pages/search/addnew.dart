@@ -1,23 +1,25 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:ui';
-import 'package:aurumfit/dynamicPayment.dart';
+import 'package:aurumfit/pages/payments/dynamicPayment.dart';
+import 'package:aurumfit/providers/auth/authprovider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
-import 'package:aurumfit/BLOC/serverRelated.dart';
+import 'package:aurumfit/domians/usermanagement/serverRelated.dart';
 import 'package:intl/intl.dart';
-import 'package:aurumfit/BLOC/passGen.dart';
+import 'package:aurumfit/domians/auth/passGen.dart';
 
-class MemberSignUpPage extends StatefulWidget {
+class MemberSignUpPage extends ConsumerStatefulWidget {
   const MemberSignUpPage({Key? key}) : super(key: key);
 
   @override
   _MemberSignUpPageState createState() => _MemberSignUpPageState();
 }
 
-class _MemberSignUpPageState extends State<MemberSignUpPage> {
+class _MemberSignUpPageState extends ConsumerState<MemberSignUpPage> {
   TextEditingController _emailController = TextEditingController();
   TextEditingController _phoneNumberController = TextEditingController();
   TextEditingController _firstNameController = TextEditingController();

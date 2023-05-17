@@ -1,17 +1,19 @@
 import 'dart:convert';
-import 'package:aurumfit/addnew.dart';
+import 'package:aurumfit/pages/search/addnew.dart';
+import 'package:aurumfit/providers/auth/authprovider.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
-import 'package:aurumfit/UI/SearchExpanded.dart';
+import 'package:aurumfit/pages/search/SearchExpanded.dart';
 
-class Search extends StatefulWidget {
+class Search extends ConsumerStatefulWidget {
   const Search({Key? key}) : super(key: key);
 
   @override
   _SearchState createState() => _SearchState();
 }
 
-class _SearchState extends State<Search> {
+class _SearchState extends ConsumerState<Search> {
   bool _isSearching = false;
   List active_users = [];
   List inactive_users = [];
@@ -20,10 +22,11 @@ class _SearchState extends State<Search> {
   Future<void> findUser(entered) async {
     // Make a POST request to aurumfitnesscommunicator.ml to get the user list
     var url = Uri.parse('https://backend.aurum.fitness/auth/getUser/');
+    final token = ref.read(AuthTokenProvider);
     var response = await http.post(url, body: {
       'name': entered
     }, headers: {
-      "Authorization": "Token 38bc32c9730b26e11b45f640aaef804c00c0c325",
+      "Authorization": "Token $token",
     });
     var users = jsonDecode(response.body);
     setState(() {
