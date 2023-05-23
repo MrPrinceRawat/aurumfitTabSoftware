@@ -54,6 +54,9 @@ class _ShowInfoState extends ConsumerState<ShowInfo> {
           "Authorization": "Token $token",
         });
     var data = json.decode(response.body);
+    if (data["error"]) {
+      throw Exception(data["message"]);
+    }
     if (data.length > 0) {
       data = data["data"];
       return data;
