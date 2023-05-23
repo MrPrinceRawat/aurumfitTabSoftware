@@ -1,3 +1,5 @@
+import 'package:aurumfit/domians/storage/Storage.dart';
+import 'package:aurumfit/pages/Auth/login.dart';
 import 'package:aurumfit/pages/settings/changebg.dart';
 import 'package:aurumfit/pages/settings/settings.dart';
 import 'package:flutter/cupertino.dart';
@@ -25,6 +27,11 @@ class _CFDState extends State<CFD> {
     setState(() {
       ip = prefs.getString('print_server_ip') ?? "";
     });
+  }
+
+  logout() async {
+    Storage storage = Storage();
+    storage.clearStorage();
   }
 
   @override
@@ -129,6 +136,71 @@ class _CFDState extends State<CFD> {
                                   CupertinoPageRoute(
                                       builder: (context) =>
                                           changeDefaultBackground()));
+                            },
+                          ),
+                          ListTile(
+                            contentPadding: EdgeInsets.only(
+                                left: 30, right: 30, bottom: 20, top: 20),
+                            leading: Container(
+                              padding: EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                  color: CupertinoColors.destructiveRed,
+                                  border: Border.fromBorderSide(BorderSide(
+                                      color: CupertinoColors.destructiveRed,
+                                      width: 2)),
+                                  borderRadius: BorderRadius.circular(10)),
+                              child: Icon(
+                                CupertinoIcons.square_arrow_right,
+                                color: Color(0xffffffff),
+                              ),
+                            ),
+                            title: Text(
+                              "Logout",
+                              style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w400,
+                                  color: CupertinoColors.white.withOpacity(.6),
+                                  fontFamily: 'SFPro'),
+                            ),
+                            trailing: Icon(
+                              CupertinoIcons.right_chevron,
+                              color: Color(0xffdedede),
+                            ),
+                            onTap: () {
+                              showCupertinoDialog(
+                                  context: context,
+                                  builder: (context) {
+                                    return CupertinoAlertDialog(
+                                      title: Text("Logout"),
+                                      content: Text(
+                                          "Are you sure you want to logout?"),
+                                      actions: [
+                                        CupertinoDialogAction(
+                                          child: Text(
+                                            "Yes",
+                                            style: TextStyle(
+                                                color: CupertinoColors
+                                                    .destructiveRed),
+                                          ),
+                                          onPressed: () async {
+                                            await logout();
+                                            Navigator.pushAndRemoveUntil(
+                                                context,
+                                                CupertinoPageRoute(
+                                                    builder: (context) =>
+                                                        Signin()),
+                                                (route) => false);
+                                          },
+                                        ),
+                                        CupertinoDialogAction(
+                                          child: Text("No"),
+                                          onPressed: () {
+                                            Navigator.pop(context);
+                                          },
+                                        )
+                                      ],
+                                    );
+                                  });
                             },
                           ),
                         ])))
