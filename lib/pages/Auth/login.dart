@@ -34,6 +34,7 @@ class _SigninState extends ConsumerState<Signin> {
   void _checkLogin() async {
     String token = await storage.read('token');
     if (token != "") {
+      ref.read(AuthTokenProvider.notifier).state = token;
       Navigator.pushReplacement(
         context,
         CupertinoPageRoute(builder: (context) => Home()),
