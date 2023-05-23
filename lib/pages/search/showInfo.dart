@@ -841,27 +841,6 @@ class _ShowInfoState extends ConsumerState<ShowInfo> {
                                   child: Row(
                                     children: [
                                       Text(
-                                        "Print Recipt Copy",
-                                        style: TextStyle(
-                                            fontFamily: 'SFPro',
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.w400,
-                                            color: CupertinoColors.systemBlue
-                                                .withOpacity(.8)),
-                                      ),
-                                      _loading == true
-                                          ? CupertinoActivityIndicator()
-                                          : Container(),
-                                    ],
-                                  ),
-                                  onPressed: () {
-                                    PrintReciptCopy(snapshot.data);
-                                  }),
-                              CupertinoButton(
-                                  padding: EdgeInsets.all(20),
-                                  child: Row(
-                                    children: [
-                                      Text(
                                         "Accept Payment",
                                         style: TextStyle(
                                             fontFamily: 'SFPro',
@@ -900,22 +879,6 @@ class _ShowInfoState extends ConsumerState<ShowInfo> {
                                       paymentHistoryLoading = true;
                                     });
                                     loadPaymentHistory();
-                                  }),
-                              CupertinoButton(
-                                  padding: EdgeInsets.all(20),
-                                  child: Row(
-                                    children: [
-                                      Text(
-                                        "Send Payment Notification",
-                                        style: TextStyle(
-                                            fontFamily: 'SFPro',
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.w400),
-                                      )
-                                    ],
-                                  ),
-                                  onPressed: () {
-                                    sendNotification(snapshot.data);
                                   }),
                             ],
                           ),
