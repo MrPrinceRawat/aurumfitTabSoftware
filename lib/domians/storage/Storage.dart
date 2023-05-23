@@ -17,4 +17,9 @@ class Storage {
     String value = prefs.getString(key) ?? "";
     return value;
   }
+
+  Future<void> clearStorage() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+  }
 }
