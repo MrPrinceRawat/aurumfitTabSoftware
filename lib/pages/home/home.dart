@@ -143,9 +143,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   getHomePageBackgound() async {
     var defaultBackgroundGot = await Backgrounds.getDefaultBackground();
     if (defaultBackgroundGot == null) {
-      await Backgrounds.setDefaultBackground("home.jpg");
+      await Backgrounds.setDefaultBackground("home#1.jpg");
       setState(() {
-        defaultBackground = "home.jpg";
+        defaultBackground = "home#1.jpg";
       });
     } else {
       setState(() {

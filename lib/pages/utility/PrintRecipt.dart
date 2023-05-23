@@ -1,11 +1,14 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:aurumfit/components/failurepromptadpater.dart';
 import 'package:aurumfit/domians/storage/fileHandling.dart';
 import 'package:aurumfit/domians/usermanagement/serverRelated.dart';
 import 'package:aurumfit/providers/auth/authprovider.dart';
+import 'package:billing/billing.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import '../../domians/usermanagement/serverRelated.dart';
 
@@ -23,7 +26,6 @@ class _PrintReciptState extends ConsumerState<PrintRecipt> {
   var name = new TextEditingController();
   var phone = new TextEditingController();
   var price = new TextEditingController();
-  var serverIp = new TextEditingController();
   var orderId = 0;
   var subtotal = new TextEditingController();
   var userId = new TextEditingController();
@@ -31,170 +33,30 @@ class _PrintReciptState extends ConsumerState<PrintRecipt> {
   List users = [];
   var _loading = false;
   var alreadyPaid = 0;
-  var serverStatus = "F";
-  var ip = "";
-  var updSocket;
-  var printableAvailable = false;
-  var autoPrintLoading = false;
   String token = "";
+  var latestInvoice = {};
+  Timer? _debounce;
 
   @override
   void initState() {
     // initServer();
     token = ref.read(AuthTokenProvider.notifier).state;
-  }
-
-  printAll() async {
-    setState(() {
-      autoPrintLoading = true;
-    });
-    var bills = await fetchforPendingPrintables();
-    if (bills.length > 0) {
-      var printQueue = "";
-      for (var i = 0; i < bills.length; i++) {
-        var currentElement = bills[i];
-        printQueue += "\n" + currentElement["name"];
-      }
-      var choice = false;
-      await showCupertinoDialog(
-          context: context,
-          builder: (_) {
-            return CupertinoAlertDialog(
-              title: Text("Print queue"),
-              content: Text(printQueue),
-              actions: <Widget>[
-                CupertinoDialogAction(
-                  child: const Text('No'),
-                  onPressed: () {
-                    Navigator.pop(_);
-                  },
-                ),
-                CupertinoDialogAction(
-                  child: Text("Ok"),
-                  onPressed: () {
-                    Navigator.pop(_);
-                    choice = true;
-                  },
-                )
-              ],
-            );
-          });
-      if (choice) {
-        for (var i = 0; i < bills.length; i++) {
-          var currentElement = bills[i];
-          var vpa = currentElement["paymentmode"];
-          print(currentElement["name"]);
-          String MembershipDuration =
-              (int.parse(currentElement["months"]) / 30).toString();
-          Map dataToSend = {
-            "name": currentElement["name"],
-            "number": currentElement["number"],
-            "price": currentElement["price"],
-            "paymentmode": vpa,
-            "plan": currentElement["plan"] + "($MembershipDuration months)",
-            "months": currentElement["name"],
-            "invoiceno": currentElement["invoiceno"],
-            "subtotal": currentElement["subtotal"]
-          };
-          await PrintGlobal(dataToSend);
-          await markAsPrinted(currentElement["invoiceno"].toString(), token);
-        }
-      }
-      setState(() {
-        autoPrintLoading = false;
-        printableAvailable = false;
-      });
-    }
+    super.initState();
   }
 
   @override
   void dispose() {
-    plan.dispose();
-    name.dispose();
-    phone.dispose();
-    price.dispose();
-    if (updSocket != null) updSocket.close();
     super.dispose();
+    _debounce?.cancel();
   }
 
-  initServer() async {
-    var ipGot = await getServerIp();
-    if (ipGot == "") {
-      await scanForServer();
-    } else {
-      if (await checkServerStatus(ipGot) == true) {
-        setState(() {
-          ip = ipGot;
-        });
-      } else {
-        scanForServer();
-      }
+  void _onSearchTextChanged(String searchText) {
+    if (_debounce?.isActive ?? false) {
+      _debounce!.cancel();
     }
-    if (await checkforPendingPrintables()) {
-      setState(() {
-        printableAvailable = true;
-      });
-    }
-  }
 
-  Future<bool> checkServerStatus(checkIp) async {
-    print(checkIp);
-    var url = Uri.parse("http://$checkIp:13687/");
-    var status = false;
-    try {
-      await http.get(url).then((value) {
-        status = true;
-      }).catchError((err) {
-        print(err);
-        status = false;
-      });
-    } catch (e) {
-      print(e);
-      status = false;
-    }
-    return status;
-  }
-
-  Future<void> scanForServer() async {
-    setState(() {
-      serverStatus = "S";
-    });
-    print("Scanning for server!!");
-    var addressesIListenFrom = InternetAddress.anyIPv4;
-    int portIListenOn = 50000; //0 is random
-    var data = "Hello, World";
-    var codec = new Utf8Codec();
-    List<int> dataToSend = codec.encode(data);
-    await RawDatagramSocket.bind(addressesIListenFrom, portIListenOn)
-        .then((RawDatagramSocket udpSocket) {
-      setState(() {
-        updSocket = udpSocket;
-      });
-      udpSocket.timeout(Duration(seconds: 5), onTimeout: (event) {
-        setState(() {
-          serverStatus = "NF";
-        });
-        udpSocket.close();
-      }).listen((RawSocketEvent event) async {
-        if (event == RawSocketEvent.read) {
-          Datagram? dg = udpSocket.receive();
-          if (dg == null) return;
-          var serverIp = dg.address.address;
-          if (serverIp != "") {
-            print(serverIp);
-            var statusCheck = await checkServerStatus(serverIp);
-            if (statusCheck) {
-              setState(() {
-                ip = serverIp;
-                serverStatus = "F";
-              });
-              saveServerIp(serverIp);
-            }
-            print("Status Check " + statusCheck.toString());
-            udpSocket.close();
-          }
-        }
-      });
+    _debounce = Timer(Duration(milliseconds: 500), () {
+      findUser(searchText);
     });
   }
 
@@ -221,213 +83,6 @@ class _PrintReciptState extends ConsumerState<PrintRecipt> {
     setState(() {
       users = jsonDecode(response.body);
     });
-  }
-
-  Future<int> getOrderID(int type) async {
-    // Check orderid exists
-
-    var CheckUrl =
-        Uri.parse("https://backend.aurum.fitness/auth/checkorderid/");
-    Map checkData = {
-      "user": userId.text,
-      "amount": price.text,
-    };
-    try {
-      var response = await http.post(CheckUrl,
-          headers: {
-            "Authorization": "Token $token",
-          },
-          body: checkData);
-      var jsonResponse = jsonDecode(response.body);
-      if (response.body.contains("OK")) {
-        var invoiceID = await http.post(
-            Uri.parse("https://backend.aurum.fitness/payments/createInvoice/"),
-            body: json.encode(
-              {
-                "user": userId.text,
-                "subtotal": subtotal.text,
-                "plan": plan.text,
-                "duration": monthsInt.toString(),
-                "status": false,
-                "payments": {}
-              },
-            ),
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Token $token'
-            });
-        if (!json.decode(invoiceID.body)['success']) {
-          showErrorDialog(context, json.decode(invoiceID.body)['error']);
-          setState(() {
-            _loading = false;
-          });
-          return 0;
-        }
-        // Create ORDERID
-        // var ServerUrl =
-        //     Uri.parse("http://127.0.0.1:8000/auth/order/" + type.toString());
-        var ServerUrl = Uri.parse(
-            "https://backend.aurum.fitness/auth/order/" + type.toString());
-        Map orderData = {
-          "user": userId.text,
-          "amount": price.text,
-          "plan": plan.text,
-          "duration": monthsInt.toString(),
-          "subtotal": subtotal.text,
-          "method": paymentModeInt,
-          "start": startDate.text,
-          'msgNumber': phone.text,
-          "invoiceid": json.decode(invoiceID.body)['InvoiceID'],
-        };
-        try {
-          var response = await http.post(ServerUrl,
-              headers: {
-                "Authorization": "Token $token",
-              },
-              body: orderData);
-          var jsonResponse = jsonDecode(response.body);
-          if (jsonResponse.containsKey("Order_id")) {
-            setState(() {
-              orderId = jsonResponse['Order_id'];
-            });
-            return jsonResponse['Order_id'];
-          } else {
-            showCupertinoDialog(
-                context: context,
-                builder: (_) {
-                  return CupertinoAlertDialog(
-                    title: Text("Error"),
-                    content: Text(jsonResponse),
-                    actions: [
-                      CupertinoDialogAction(
-                        child: Text("OK"),
-                        onPressed: () {
-                          Navigator.pop(_);
-                        },
-                      )
-                    ],
-                  );
-                });
-            return 0;
-          }
-        } catch (e) {
-          print(e);
-          setState(() {
-            _loading = false;
-          });
-        }
-        return 0;
-      } else {
-        var invoiceID = await http.post(
-            Uri.parse("https://backend.aurum.fitness/payments/createInvoice/"),
-            body: json.encode(
-              {
-                "user": userId.text,
-                "subtotal": subtotal.text,
-                "plan": plan.text,
-                "duration": monthsInt.toString(),
-                "status": false,
-                "payments": {}
-              },
-            ),
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Token $token'
-            });
-        if (!json.decode(invoiceID.body)['success']) {
-          showErrorDialog(context, json.decode(invoiceID.body)['error']);
-          setState(() {
-            _loading = false;
-          });
-          return 0;
-        }
-        await showCupertinoDialog(
-            context: context,
-            builder: (_) {
-              return CupertinoAlertDialog(
-                title: Text("Order Already Exists!"),
-                content: Text("Order " +
-                    jsonResponse["ID"].toString() +
-                    " for user " +
-                    userId.text +
-                    " already exists on " +
-                    jsonResponse["date"]),
-                actions: [
-                  CupertinoDialogAction(
-                    child: Text(
-                      "Use this",
-                      style: TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        orderId = jsonResponse["ID"];
-                      });
-                      Navigator.pop(_);
-                    },
-                  ),
-                  CupertinoDialogAction(
-                    child: Text("Create Anyway"),
-                    onPressed: () async {
-                      Navigator.pop(_);
-                      // Create ORDERID
-                      var ServerUrl = Uri.parse(
-                          "https://backend.aurum.fitness/auth/order/" +
-                              type.toString());
-                      Map orderData = {
-                        "user": userId.text,
-                        "amount": price.text,
-                        "plan": plan.text,
-                        "duration": monthsInt.toString(),
-                        "subtotal": subtotal.text,
-                        "method": paymentModeInt,
-                        "start": startDate.text,
-                        'msgNumber': phone.text,
-                        "invoiceid": json.decode(invoiceID.body)['InvoiceID'],
-                      };
-                      print(orderData);
-                      try {
-                        var response = await http.post(ServerUrl,
-                            headers: {
-                              "Authorization": "Token $token",
-                            },
-                            body: orderData);
-                        print(response.body);
-                        var jsonResponse = jsonDecode(response.body);
-                        if (response.body.contains("Order_id")) {
-                          setState(() {
-                            orderId = jsonResponse['Order_id'];
-                          });
-                          return jsonResponse['Order_id'];
-                        }
-                      } catch (e) {
-                        print(e);
-                        setState(() {
-                          _loading = false;
-                        });
-                      }
-                    },
-                  ),
-                  CupertinoDialogAction(
-                    child: Text(
-                      "Cancel",
-                      style: TextStyle(color: CupertinoColors.destructiveRed),
-                    ),
-                    onPressed: () {
-                      Navigator.pop(_);
-                    },
-                  ),
-                ],
-              );
-            });
-        return 0;
-      }
-    } catch (e) {
-      print(e);
-      setState(() {
-        _loading = false;
-      });
-    }
-    return 0;
   }
 
   getUserInfo(_userid) async {
@@ -459,148 +114,73 @@ class _PrintReciptState extends ConsumerState<PrintRecipt> {
     }
   }
 
-  Future<void> printRecept() async {
+  getLatestInvoice(_userid) async {
+    Billing bill = new Billing();
+
+    var response = await bill.getUserInvoices(
+        token,
+        BillingModel(
+            id: _userid,
+            name: "",
+            phone: "",
+            plan: "",
+            price: "",
+            duration: 0));
+    // Set the latest invoice to the first invoice in the list
     setState(() {
-      _loading = true;
+      latestInvoice = response.isNotEmpty ? response[response.keys.first] : {};
     });
-    var url = Uri.parse("http://$ip:13687/printrecipt");
-    var orderid = await getOrderID(1);
-    if (orderid == 0) {
-      setState(() {
-        _loading = false;
-      });
-      showCupertinoDialog(
-          context: context,
-          builder: (_) {
-            return CupertinoAlertDialog(
-              title: Text("Failed"),
-              content: Text("Printing Failed, Invalid Orderid"),
-              actions: <Widget>[
-                CupertinoDialogAction(
-                  child: Text("Ok"),
-                  onPressed: () {
-                    Navigator.pop(_);
-                  },
-                )
-              ],
-            );
-          });
-      return;
-    }
-    var metric = plan.text == "T-Shirt"
-        ? "(${monthsInt.toString()} Units)"
-        : "(${monthsInt.toString()} months)";
-    Map data = {
-      "name": name.text,
-      "number": phone.text,
-      "price": subtotal.text == alreadyPaid.toString()
-          ? alreadyPaid
-          : (alreadyPaid + int.parse(price.text)).toString(),
-      "paymentmode": paymentModeInt,
-      "plan": plan.text + metric,
-      "months": monthsInt.toString(),
-      "invoiceno": orderId,
-      "subtotal": subtotal.text,
-      "start": startDate.text,
-    };
-    var body = json.encode(data);
-    var response = await http.post(url, body: body, headers: {
-      "Accept": "application/json",
-      "Content-Type": "application/json"
-    });
-    print(response.body);
-    if (response.statusCode == 200) {
-      setState(() {
-        _loading = false;
-      });
-      showCupertinoDialog(
-          context: context,
-          builder: (_) {
-            return CupertinoAlertDialog(
-              title: Text("Success"),
-              content: Text("Printing Successful"),
-              actions: <Widget>[
-                CupertinoDialogAction(
-                  child: const Text('No'),
-                  onPressed: () {
-                    Navigator.pop(_);
-                  },
-                ),
-                CupertinoDialogAction(
-                  child: Text("Ok"),
-                  onPressed: () {
-                    Navigator.pop(_);
-                  },
-                )
-              ],
-            );
-          });
-    } else {
-      setState(() {
-        _loading = false;
-      });
-      showCupertinoDialog(
-          context: context,
-          builder: (_) {
-            return CupertinoAlertDialog(
-              title: Text("Error"),
-              content: Text("Updated but not printed!"),
-              actions: <Widget>[
-                CupertinoDialogAction(
-                  child: Text("Ok"),
-                  onPressed: () {
-                    Navigator.pop(_);
-                  },
-                )
-              ],
-            );
-          });
-    }
   }
 
-  Future<void> save() async {
+  save() async {
     setState(() {
       _loading = true;
     });
-    var orderid = await getOrderID(0);
-    if (orderid == 0) {
-      setState(() {
-        _loading = false;
-      });
-      showCupertinoDialog(
-          context: context,
-          builder: (_) {
-            return CupertinoAlertDialog(
-              title: Text("Failed"),
-              content: Text("Printing Failed, Invalid Orderid"),
-              actions: <Widget>[
-                CupertinoDialogAction(
-                  child: Text("Ok"),
-                  onPressed: () {
-                    Navigator.pop(_);
-                  },
-                )
-              ],
-            );
-          });
-      return;
+    Billing billing = new Billing();
+    String InvoiceId = "";
+    BillingModel billingModel = new BillingModel(
+        id: userId.text,
+        name: name.text,
+        phone: phone.text,
+        plan: plan.text,
+        price: subtotal.text,
+        duration: monthsInt);
+    try {
+      print("Getting latest invoice / Creating new invoice");
+      if (latestInvoice.isEmpty) {
+        InvoiceId = await billing.generateInvoice(token, billingModel);
+      } else {
+        InvoiceId = latestInvoice.keys.first;
+      }
+      print("Creating payment");
+      var response = await billing.generatePaymentID(
+          token, price.text, paymentModeInt, "Paid", InvoiceId, billingModel);
+      print("Adding payment");
+      var status = await billing.addPayments(InvoiceId, response.toString(),
+          int.parse(price.text), token, billingModel);
+      print("Payment added");
+      if (status) {
+        showCupertinoDialog(
+            context: context,
+            builder: (context) => CupertinoAlertDialog(
+                  title: Text("Success"),
+                  content: Text("Payment Successful"),
+                  actions: [
+                    CupertinoDialogAction(
+                      child: Text("Ok"),
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                    )
+                  ],
+                ));
+      } else {
+        showErrorDialog(context, "Something went wrong");
+      }
+    } catch (e) {
+      print(e);
+      showErrorDialog(context, "Something went wrong");
     }
-    showCupertinoDialog(
-        context: context,
-        builder: (_) {
-          return CupertinoAlertDialog(
-            title: Text("Saved"),
-            content: Text("User Info Saved to be printed later"),
-            actions: <Widget>[
-              CupertinoDialogAction(
-                child: Text("Ok"),
-                onPressed: () {
-                  Navigator.pop(_);
-                },
-              )
-            ],
-          );
-        });
     setState(() {
       _loading = false;
     });
@@ -610,7 +190,7 @@ class _PrintReciptState extends ConsumerState<PrintRecipt> {
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
         navigationBar: CupertinoNavigationBar(
-            middle: Text('Print Recipt',
+            middle: Text('Billing',
                 style: TextStyle(
                     fontFamily: 'SFPro',
                     fontWeight: FontWeight.w600,
@@ -621,7 +201,7 @@ class _PrintReciptState extends ConsumerState<PrintRecipt> {
                     padding: EdgeInsets.zero,
                     child: Text("Save",
                         style: TextStyle(fontFamily: "SFPro", fontSize: 18)),
-                    onPressed: CheckAllFilled() ? save : null)),
+                    onPressed: save)),
         child: SafeArea(
             child: _loading
                 ? Container(
@@ -633,107 +213,66 @@ class _PrintReciptState extends ConsumerState<PrintRecipt> {
                     // color: CupertinoColors.systemGrey6,
                     padding: EdgeInsets.only(left: 10, right: 10),
                     child: ListView(children: <Widget>[
-                      serverStatus == "S"
-                          ? Container(
-                              margin: EdgeInsets.only(top: 10),
-                              width: MediaQuery.of(context).size.width,
-                              height: 100,
-                              decoration: BoxDecoration(
-                                  color: CupertinoColors.darkBackgroundGray,
-                                  borderRadius: BorderRadius.circular(20)),
-                              child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    CupertinoActivityIndicator(),
-                                    SizedBox(
-                                      width: 5,
-                                    ),
-                                    Text(
-                                      "Scanning for Server...",
-                                      style: TextStyle(
-                                          fontFamily: 'SFPro',
-                                          letterSpacing: 0,
-                                          fontSize: 20),
-                                    )
-                                  ]),
-                            )
-                          : SizedBox(),
-                      serverStatus == "NF"
-                          ? Container(
-                              margin: EdgeInsets.only(top: 10),
-                              width: MediaQuery.of(context).size.width,
-                              height: 100,
-                              decoration: BoxDecoration(
-                                  color: CupertinoColors.darkBackgroundGray,
-                                  borderRadius: BorderRadius.circular(20)),
-                              child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      CupertinoIcons.exclamationmark_triangle,
-                                      color: CupertinoColors.systemYellow,
-                                      size: 25,
-                                    ),
-                                    SizedBox(
-                                      width: 5,
-                                    ),
-                                    Text(
-                                      "Print Server Offline!",
-                                      style: TextStyle(
-                                          fontFamily: 'SFPro',
-                                          letterSpacing: 0,
-                                          fontSize: 20),
-                                    )
-                                  ]),
-                            )
-                          : SizedBox(),
-                      printableAvailable
-                          ? Container(
-                              margin: EdgeInsets.only(top: 10),
-                              width: MediaQuery.of(context).size.width,
-                              height: 100,
-                              decoration: BoxDecoration(
-                                  color: CupertinoColors.darkBackgroundGray,
-                                  borderRadius: BorderRadius.circular(20)),
-                              child: autoPrintLoading
-                                  ? Center(
-                                      child: CupertinoActivityIndicator(),
-                                    )
-                                  : Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
+                      name.text != ""
+                          ? Padding(
+                              padding: const EdgeInsets.only(
+                                top: 10,
+                                left: 20,
+                                right: 20,
+                              ),
+                              child: Container(
+                                width: MediaQuery.of(context).size.width,
+                                height: 60,
+                                decoration: BoxDecoration(
+                                    color:
+                                        CupertinoColors.systemGrey6.darkColor,
+                                    borderRadius: BorderRadius.circular(10)),
+                                child: latestInvoice.isNotEmpty
+                                    ? Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        children: [
                                           Icon(
-                                            CupertinoIcons.square_stack_fill,
-                                            color: CupertinoColors.activeBlue,
-                                            size: 25,
+                                            CupertinoIcons.checkmark_circle,
+                                            color: CupertinoColors.systemGreen,
                                           ),
                                           SizedBox(
-                                            width: 5,
+                                            width: 10,
                                           ),
                                           Text(
-                                            "Bills Available to Print",
-                                            style: TextStyle(
-                                                fontFamily: 'SFPro',
-                                                letterSpacing: 0,
-                                                fontSize: 20),
+                                            "Invoice Found",
+                                            style: GoogleFonts.montserrat(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.w500),
+                                          ),
+                                        ],
+                                      )
+                                    : Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            CupertinoIcons
+                                                .exclamationmark_circle,
+                                            color: CupertinoColors.systemRed,
                                           ),
                                           SizedBox(
-                                            width: 5,
+                                            width: 10,
                                           ),
-                                          serverStatus == "F"
-                                              ? CupertinoButton(
-                                                  child: Text("Print All"),
-                                                  onPressed: () {
-                                                    printAll();
-                                                  })
-                                              : Text(
-                                                  "Get Server Online to Print All",
-                                                  style: TextStyle(
-                                                      color: CupertinoColors
-                                                          .systemGrey),
-                                                )
-                                        ]))
+                                          Text(
+                                            "No Invoice Found, Will be generated",
+                                            style: GoogleFonts.montserrat(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.w500),
+                                          ),
+                                        ],
+                                      ),
+                              ),
+                            )
                           : SizedBox(),
                       CupertinoFormSection.insetGrouped(
                         header: Text('User Info'),
@@ -742,7 +281,7 @@ class _PrintReciptState extends ConsumerState<PrintRecipt> {
                               prefix: Text('User ID'),
                               child: CupertinoTextFormFieldRow(
                                 onChanged: (value) {
-                                  findUser(value);
+                                  _onSearchTextChanged(value);
                                 },
                                 controller: userId,
                                 placeholder: 'user',
@@ -760,6 +299,7 @@ class _PrintReciptState extends ConsumerState<PrintRecipt> {
                                         setState(() {
                                           userId.text = i[0];
                                           getUserInfo(i[0]);
+                                          getLatestInvoice(i[0]);
                                           users = [];
                                         });
                                       },

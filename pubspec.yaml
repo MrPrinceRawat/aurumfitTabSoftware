@@ -43,6 +43,8 @@ dependencies:
 
   authentication:
     path: ./packages/authentication
+  billing:
+    path: ./packages/billing
 
 flutter_icons:
   android: "launcher_icon"

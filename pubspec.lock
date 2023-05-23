@@ -32,6 +32,13 @@ packages:
       relative: true
     source: path
     version: "0.1.0+1"
+  billing:
+    dependency: "direct main"
+    description:
+      path: "packages/billing"
+      relative: true
+    source: path
+    version: "0.1.0+1"
   boolean_selector:
     dependency: transitive
     description:

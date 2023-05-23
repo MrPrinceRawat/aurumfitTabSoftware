@@ -238,12 +238,12 @@ class _UtilityState extends State<Utility> {
                                     color: Color(0xff2ca3c7), width: 2)),
                                 borderRadius: BorderRadius.circular(10)),
                             child: Icon(
-                              CupertinoIcons.printer,
+                              CupertinoIcons.creditcard,
                               color: Color(0xffffffff),
                             ),
                           ),
                           title: Text(
-                            "Print Recipt",
+                            "Billing",
                             style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w400,
