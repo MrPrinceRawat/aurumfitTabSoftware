@@ -1,7 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Storage {
-  Future<void> write(String value, String key) async {
+  Future<void> write(String key, String value) async {
     if (value != "" && key != "") {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.setString(key, value);
