@@ -1,19 +1,19 @@
 import 'dart:convert';
-import 'dart:io';
-import 'dart:ui';
-import 'package:aurumfit/domians/auth/authHandler.dart';
+import 'package:aurumfit/domians/payments/Invoice.dart';
+import 'package:aurumfit/domians/payments/models/Invoice.dart';
 import 'package:aurumfit/domians/usermanagement/serverRelated.dart';
+import 'package:aurumfit/domians/usermanagement/user_management.dart';
+import 'package:aurumfit/pages/search/components/InvoiceBlock.dart';
+import 'package:aurumfit/pages/search/components/paymentHistory.dart';
 import 'package:aurumfit/providers/auth/authprovider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:aurumfit/pages/payments/dynamicPayment.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:http/http.dart' as http;
+
+import '../payments/dynamicPayment.dart';
 
 class ShowInfo extends ConsumerStatefulWidget {
   const ShowInfo({Key? key, required this.userid}) : super(key: key);
@@ -25,7 +25,6 @@ class ShowInfo extends ConsumerStatefulWidget {
 }
 
 class _ShowInfoState extends ConsumerState<ShowInfo> {
-  final ScrollController scrollController = ScrollController();
   late Future myFuture;
   var _loading = false;
   var attendance_loading = false;
@@ -42,88 +41,9 @@ class _ShowInfoState extends ConsumerState<ShowInfo> {
   var dueDate = TextEditingController();
   var user = null;
   String token = "";
+  late UserManagement usermanagement;
 
-  void PrintReciptCopy(data) async {
-    setState(() {
-      _loading = true;
-    });
-    var url = 'https://backend.aurum.fitness/api/getOrderId/';
-    var response = await http.post(Uri.parse(url),
-        body: json.encode({
-          'userid': widget.userid,
-        }),
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Token $token",
-        });
-    var OI = json.decode(response.body);
-    var orderid = OI['orderId'];
-    var vpa = OI['vpa'];
-    if (data.checkIfAnyIsNull()) {
-      setState(() {
-        _loading = false;
-      });
-      showCupertinoDialog(
-          context: context,
-          builder: (_) {
-            return CupertinoAlertDialog(
-              title: Text("Failed"),
-              content: Text("Printing Failed"),
-              actions: <Widget>[
-                CupertinoDialogAction(
-                  child: const Text('No'),
-                  onPressed: () {
-                    Navigator.pop(_);
-                  },
-                ),
-                CupertinoDialogAction(
-                  child: Text("Ok"),
-                  onPressed: () {
-                    Navigator.pop(_);
-                  },
-                )
-              ],
-            );
-          });
-    } else {
-      Map dataToSend = {
-        "name": data.name,
-        "number": data.Phone_number,
-        "price": data.amount_paid,
-        "paymentmode": vpa != Null ? "UPI($vpa)" : "Cash",
-        "plan": data.Membership_type + "(${data.Membership_duration} months)",
-        "months": data.Membership_duration,
-        "invoiceno": orderid,
-        "subtotal": data.Total_Payable_Amount
-      };
-      await PrintGlobal(dataToSend).then((status) {
-        if (!status) {
-          showCupertinoDialog(
-              context: context,
-              builder: (_) {
-                return CupertinoAlertDialog(
-                  title: Text("Failed"),
-                  content: Text("Printing Failed: No IP Found"),
-                  actions: <Widget>[
-                    CupertinoDialogAction(
-                      child: Text("Ok"),
-                      onPressed: () {
-                        Navigator.pop(_);
-                      },
-                    )
-                  ],
-                );
-              });
-        }
-      });
-      await markAsPrinted(orderid, token);
-    }
-    setState(() {
-      _loading = false;
-    });
-  }
-
-  void loadPaymentHistory() async {
+  Future loadPaymentHistory() async {
     var url = 'https://backend.aurum.fitness/api/getPaymentHistoryStaff/';
     var response = await http.post(Uri.parse(url),
         body: json.encode({
@@ -136,236 +56,17 @@ class _ShowInfoState extends ConsumerState<ShowInfo> {
     var data = json.decode(response.body);
     if (data.length > 0) {
       data = data["data"];
-      showCupertinoModalPopup(
-          context: context,
-          builder: (context) {
-            return Container(
-              width: MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.height * .8,
-              padding: EdgeInsets.all(30),
-              decoration: BoxDecoration(
-                  color: CupertinoColors.systemGroupedBackground,
-                  borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(20),
-                      topRight: Radius.circular(20))),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Payment History",
-                    style: TextStyle(fontSize: 30, fontWeight: FontWeight.w300),
-                  ),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  Container(
-                    width: MediaQuery.of(context).size.width,
-                    height: MediaQuery.of(context).size.height * 0.7,
-                    child: ListView.builder(
-                      itemBuilder: (context, index) {
-                        return StatefulBuilder(
-                          builder: ((context, StateSetter expande) {
-                            return GestureDetector(
-                              onTap: (() {
-                                expande(() {
-                                  expanded = expanded ? false : true;
-                                });
-                              }),
-                              child: Padding(
-                                padding: const EdgeInsets.only(bottom: 10.0),
-                                child: Container(
-                                  width: MediaQuery.of(context).size.width - 50,
-                                  height: expanded
-                                      ? MediaQuery.of(context).size.height / 10
-                                      : MediaQuery.of(context).size.height / 6,
-                                  decoration: BoxDecoration(
-                                      color:
-                                          CupertinoColors.lightBackgroundGray,
-                                      borderRadius: BorderRadius.circular(15)),
-                                  child: Padding(
-                                    padding: const EdgeInsets.only(
-                                        left: 8.0, right: 8.0),
-                                    child: Row(children: [
-                                      Padding(
-                                        padding: const EdgeInsets.only(
-                                            left: 15.0, right: 20),
-                                        child: Text(
-                                          data[index]["months"],
-                                          style: TextStyle(
-                                              fontFamily: 'SFPro',
-                                              fontSize: 40,
-                                              fontWeight: FontWeight.bold,
-                                              color: data[index]
-                                                          ["additional_info"]
-                                                      ["bill_printed"]
-                                                  ? CupertinoColors.systemGreen
-                                                  : CupertinoColors
-                                                      .inactiveGray),
-                                        ),
-                                      ),
-                                      Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Container(
-                                            width: MediaQuery.of(context)
-                                                    .size
-                                                    .width *
-                                                0.76,
-                                            child: Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.center,
-                                              children: [
-                                                Column(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.center,
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(data[index]["type"],
-                                                        style: TextStyle(
-                                                          fontFamily: 'SFPro',
-                                                          fontSize: 18,
-                                                        )),
-                                                    Text(data[index]["date"],
-                                                        style: TextStyle(
-                                                            fontFamily: 'SFPro',
-                                                            fontSize: 16,
-                                                            color: CupertinoColors
-                                                                .inactiveGray)),
-                                                  ],
-                                                ),
-                                                Text(
-                                                    "₹" + data[index]["amount"],
-                                                    style: TextStyle(
-                                                      fontFamily: 'SFPro',
-                                                      fontSize: 18,
-                                                    )),
-                                              ],
-                                            ),
-                                          ),
-                                          expanded
-                                              ? SizedBox(
-                                                  height: 0,
-                                                )
-                                              : SizedBox(
-                                                  height: 15,
-                                                ),
-                                          expanded
-                                              ? SizedBox(height: 0)
-                                              : Container(
-                                                  width: MediaQuery.of(context)
-                                                          .size
-                                                          .width *
-                                                      0.76,
-                                                  decoration: BoxDecoration(
-                                                    border: Border(
-                                                      top: BorderSide(
-                                                          width: 1.0,
-                                                          color: CupertinoColors
-                                                              .darkBackgroundGray),
-                                                    ),
-                                                  ),
-                                                  child: Column(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .center,
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
-                                                    children: [
-                                                      SizedBox(
-                                                        height: 20,
-                                                      ),
-                                                      Row(
-                                                        mainAxisAlignment:
-                                                            MainAxisAlignment
-                                                                .spaceBetween,
-                                                        children: [
-                                                          Column(
-                                                            mainAxisAlignment:
-                                                                MainAxisAlignment
-                                                                    .center,
-                                                            crossAxisAlignment:
-                                                                CrossAxisAlignment
-                                                                    .start,
-                                                            children: [
-                                                              Text(
-                                                                  data[index][
-                                                                          "additional_info"]
-                                                                      ["VPA"],
-                                                                  style: TextStyle(
-                                                                      fontFamily:
-                                                                          'SFPro',
-                                                                      fontSize:
-                                                                          16,
-                                                                      color: CupertinoColors
-                                                                          .inactiveGray)),
-                                                              Text(
-                                                                  "#" +
-                                                                      data[index]
-                                                                              [
-                                                                              "id"]
-                                                                          .toString(),
-                                                                  style: TextStyle(
-                                                                      fontFamily:
-                                                                          'SFPro',
-                                                                      fontSize:
-                                                                          16,
-                                                                      color: CupertinoColors
-                                                                          .inactiveGray)),
-                                                            ],
-                                                          ),
-                                                          Text(
-                                                              "₹" +
-                                                                  data[index]["additional_info"]
-                                                                          [
-                                                                          "subtotal"]
-                                                                      .toString(),
-                                                              style: TextStyle(
-                                                                  fontFamily:
-                                                                      'SFPro',
-                                                                  fontSize: 16,
-                                                                  color: CupertinoColors
-                                                                      .inactiveGray)),
-                                                        ],
-                                                      )
-                                                    ],
-                                                  ),
-                                                )
-                                        ],
-                                      ),
-                                    ]),
-                                  ),
-                                ),
-                              ),
-                            );
-                          }),
-                        );
-                      },
-                      itemCount: data.length,
-                    ),
-                  ),
-                ],
-              ),
-            );
-          });
+      return data;
     }
-    setState(() {
-      paymentHistoryLoading = false;
-    });
+    return [];
   }
 
   @override
   void initState() {
     super.initState();
     token = ref.read(AuthTokenProvider.notifier).state;
-    myFuture = getUser(widget.userid);
+    usermanagement = UserManagement(userid: widget.userid);
+    myFuture = usermanagement.getUserInfo(token);
     setState(() {
       userid = widget.userid;
     });
@@ -519,22 +220,55 @@ class _ShowInfoState extends ConsumerState<ShowInfo> {
                     actions: [
                       CupertinoButton(
                         child: Icon(
-                          CupertinoIcons.bell,
+                          CupertinoIcons.qrcode_viewfinder,
                           color: Colors.white70,
                         ),
                         onPressed: () {
-                          sendNotification(snapshot.data);
+                          Navigator.push(
+                              context,
+                              CupertinoPageRoute(
+                                  builder: (context) => DynamicQrCode(
+                                        userid: userid,
+                                      )));
                         },
                       ),
                       CupertinoButton(
                         child: Icon(
-                          CupertinoIcons.camera,
+                          CupertinoIcons.ellipsis_circle,
                           color: Colors.white70,
                         ),
                         onPressed: () {
-                          handleImageChange();
+                          // Open a drop dow menu
+                          showCupertinoModalPopup(
+                              context: context,
+                              builder: (context) => CupertinoActionSheet(
+                                    title: Text("Options"),
+                                    actions: [
+                                      CupertinoActionSheetAction(
+                                        onPressed: () {
+                                          Navigator.pop(context);
+                                          handleImageChange();
+                                        },
+                                        child: Text("Change Profile Picture"),
+                                      ),
+                                      CupertinoActionSheetAction(
+                                        onPressed: () {
+                                          Navigator.pop(context);
+                                          sendNotification(snapshot.data);
+                                        },
+                                        child:
+                                            Text("Send Payment Notification"),
+                                      ),
+                                    ],
+                                    cancelButton: CupertinoActionSheetAction(
+                                      onPressed: () {
+                                        Navigator.pop(context);
+                                      },
+                                      child: Text("Cancel"),
+                                    ),
+                                  ));
                         },
-                      ),
+                      )
                     ],
                     backgroundColor: Color.fromARGB(255, 41, 41, 41),
                     expandedHeight: 300,
@@ -561,6 +295,7 @@ class _ShowInfoState extends ConsumerState<ShowInfo> {
                   SliverList(
                       delegate:
                           SliverChildBuilderDelegate((BuildContext ctx, index) {
+                    print(snapshot.data);
                     return Container(
                       padding: EdgeInsets.all(10),
                       margin: EdgeInsets.only(top: 30),
@@ -625,6 +360,20 @@ class _ShowInfoState extends ConsumerState<ShowInfo> {
                               children: [
                                 CupertinoFormRow(
                                   prefix: Text(
+                                    'Username: ',
+                                    style: TextStyle(
+                                        fontFamily: 'SFPro',
+                                        fontWeight: FontWeight.w500),
+                                  ),
+                                  child: CupertinoTextFormFieldRow(
+                                    textAlign: TextAlign.left,
+                                    readOnly: true,
+                                    controller: TextEditingController(
+                                        text: snapshot.data.userid),
+                                  ),
+                                ),
+                                CupertinoFormRow(
+                                  prefix: Text(
                                     'Name: ',
                                     style: TextStyle(
                                         fontFamily: 'SFPro',
@@ -632,6 +381,7 @@ class _ShowInfoState extends ConsumerState<ShowInfo> {
                                   ),
                                   child: CupertinoTextFormFieldRow(
                                     textAlign: TextAlign.left,
+                                    readOnly: true,
                                     controller: TextEditingController(
                                         text: snapshot.data.name),
                                   ),
@@ -645,6 +395,7 @@ class _ShowInfoState extends ConsumerState<ShowInfo> {
                                   ),
                                   child: CupertinoTextFormFieldRow(
                                     textAlign: TextAlign.left,
+                                    readOnly: true,
                                     controller: TextEditingController(
                                         text: snapshot.data.Phone_number),
                                   ),
@@ -658,95 +409,42 @@ class _ShowInfoState extends ConsumerState<ShowInfo> {
                                   ),
                                   child: CupertinoTextFormFieldRow(
                                     textAlign: TextAlign.left,
+                                    readOnly: true,
                                     controller: TextEditingController(
                                         text: snapshot.data!.Address),
                                   ),
                                 ),
-                              ]),
-                          CupertinoFormSection.insetGrouped(
-                              // backgroundColor:
-                              //     CupertinoColors.lightBackgroundGray,
-                              header: Text(
-                                'Membership Info',
-                                style: TextStyle(
-                                    fontFamily: 'SFPro',
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w600),
-                              ),
-                              children: [
                                 CupertinoFormRow(
                                   prefix: Text(
-                                    'Membership Type: ',
+                                    'Date of Birth: ',
                                     style: TextStyle(
                                         fontFamily: 'SFPro',
                                         fontWeight: FontWeight.w500),
                                   ),
                                   child: CupertinoTextFormFieldRow(
                                     textAlign: TextAlign.left,
+                                    readOnly: true,
                                     controller: TextEditingController(
-                                        text: snapshot.data!.Membership_type),
+                                        text: snapshot.data!.dob),
                                   ),
                                 ),
                                 CupertinoFormRow(
                                   prefix: Text(
-                                    'Total Payable Amount: ',
+                                    'Gender: ',
                                     style: TextStyle(
                                         fontFamily: 'SFPro',
                                         fontWeight: FontWeight.w500),
                                   ),
                                   child: CupertinoTextFormFieldRow(
                                     textAlign: TextAlign.left,
+                                    readOnly: true,
                                     controller: TextEditingController(
-                                        text: snapshot
-                                            .data!.Total_Payable_Amount
-                                            .toString()),
-                                  ),
-                                ),
-                                CupertinoFormRow(
-                                  prefix: Text(
-                                    'Amount Paid: ',
-                                    style: TextStyle(
-                                        fontFamily: 'SFPro',
-                                        fontWeight: FontWeight.w500),
-                                  ),
-                                  child: CupertinoTextFormFieldRow(
-                                    textAlign: TextAlign.left,
-                                    controller: TextEditingController(
-                                        text: snapshot.data!.amount_paid
-                                            .toString()),
-                                  ),
-                                ),
-                                CupertinoFormRow(
-                                  prefix: Text(
-                                    'Membership Duration: ',
-                                    style: TextStyle(
-                                        fontFamily: 'SFPro',
-                                        fontWeight: FontWeight.w500),
-                                  ),
-                                  child: CupertinoTextFormFieldRow(
-                                    textAlign: TextAlign.left,
-                                    controller: TextEditingController(
-                                        text: snapshot.data!.Membership_duration
-                                            .toString()),
-                                  ),
-                                ),
-                                CupertinoFormRow(
-                                  prefix: Text(
-                                    'Membership Starting From: ',
-                                    style: TextStyle(
-                                        fontFamily: 'SFPro',
-                                        fontWeight: FontWeight.w500),
-                                  ),
-                                  child: CupertinoTextFormFieldRow(
-                                    textAlign: TextAlign.left,
-                                    controller: TextEditingController(
-                                        text: snapshot
-                                            .data!.Membership_start_date),
+                                        text: snapshot.data!.gender),
                                   ),
                                 ),
                               ]),
                           SizedBox(
-                            height: 30,
+                            height: 20,
                           ),
                           Padding(
                             padding: const EdgeInsets.only(left: 20, right: 20),
@@ -832,58 +530,126 @@ class _ShowInfoState extends ConsumerState<ShowInfo> {
                           SizedBox(
                             height: 30,
                           ),
-                          CupertinoFormSection.insetGrouped(
-                            // backgroundColor:
-                            //     CupertinoColors.lightBackgroundGray,
-                            children: [
-                              CupertinoButton(
-                                  padding: EdgeInsets.all(20),
-                                  child: Row(
-                                    children: [
-                                      Text(
-                                        "Accept Payment",
-                                        style: TextStyle(
-                                            fontFamily: 'SFPro',
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.w400),
-                                      ),
-                                    ],
-                                  ),
-                                  onPressed: () {
-                                    Navigator.push(
-                                        context,
-                                        CupertinoPageRoute(
-                                            builder: (context) => DynamicQrCode(
-                                                  userid: widget.userid,
-                                                )));
-                                  }),
-                              CupertinoButton(
-                                  padding: EdgeInsets.all(20),
-                                  child: Row(
-                                    children: [
-                                      Text(
-                                        "Show Payment History",
-                                        style: TextStyle(
-                                            fontFamily: 'SFPro',
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.w400),
-                                      ),
-                                      Spacer(),
-                                      paymentHistoryLoading
-                                          ? CupertinoActivityIndicator()
-                                          : SizedBox()
-                                    ],
-                                  ),
-                                  onPressed: () {
-                                    setState(() {
-                                      paymentHistoryLoading = true;
-                                    });
-                                    loadPaymentHistory();
-                                  }),
-                            ],
+                          Padding(
+                            padding: const EdgeInsets.only(left: 20, right: 20),
+                            child: Row(
+                              children: [
+                                Text(
+                                  "Invoices",
+                                  style: TextStyle(
+                                      fontFamily: 'SFPro',
+                                      fontSize: 20,
+                                      color: Color.fromARGB(217, 255, 255, 255),
+                                      fontWeight: FontWeight.w600),
+                                ),
+                              ],
+                            ),
                           ),
                           SizedBox(
-                            height: 60,
+                            height: 15,
+                          ),
+                          FutureBuilder(
+                              future: Invoice(userid: userid).getInvoice(token),
+                              builder: (context,
+                                  AsyncSnapshot<InvoiceModel> snapshot) {
+                                if (snapshot.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return Container(
+                                    width:
+                                        MediaQuery.of(context).size.width * .9,
+                                    height:
+                                        MediaQuery.of(context).size.height * .3,
+                                    child: Center(
+                                      child: CupertinoActivityIndicator(),
+                                    ),
+                                  );
+                                } else if (snapshot.hasData) {
+                                  return InvoiceBlock(
+                                      userid: userid,
+                                      token: token,
+                                      invoice: snapshot.data);
+                                } else if (snapshot.hasError) {
+                                  print(snapshot.error);
+                                  return Container(
+                                    width:
+                                        MediaQuery.of(context).size.width * .9,
+                                    height:
+                                        MediaQuery.of(context).size.height * .3,
+                                    child: Center(
+                                      child: Text('Error'),
+                                    ),
+                                  );
+                                }
+                                return Container(
+                                  width: MediaQuery.of(context).size.width * .9,
+                                  height:
+                                      MediaQuery.of(context).size.height * .3,
+                                  child: Center(
+                                    child: CupertinoActivityIndicator(),
+                                  ),
+                                );
+                              }),
+                          SizedBox(
+                            height: 30,
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: Row(
+                              children: [
+                                Text(
+                                  "Payment History",
+                                  style: TextStyle(
+                                      fontFamily: 'SFPro',
+                                      fontSize: 20,
+                                      color: Color.fromARGB(217, 255, 255, 255),
+                                      fontWeight: FontWeight.w600),
+                                ),
+                              ],
+                            ),
+                          ),
+                          SizedBox(
+                            height: 5,
+                          ),
+                          FutureBuilder(
+                              future: loadPaymentHistory(),
+                              builder: (context, AsyncSnapshot snapshot) {
+                                if (snapshot.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return Container(
+                                    width:
+                                        MediaQuery.of(context).size.width * .9,
+                                    height:
+                                        MediaQuery.of(context).size.height * .3,
+                                    child: Center(
+                                      child: CupertinoActivityIndicator(),
+                                    ),
+                                  );
+                                } else if (snapshot.hasData) {
+                                  return PaymentHistoryBlock(
+                                      data: snapshot.data);
+                                } else if (snapshot.hasError) {
+                                  print(snapshot.error);
+                                  return Container(
+                                    width:
+                                        MediaQuery.of(context).size.width * .9,
+                                    height:
+                                        MediaQuery.of(context).size.height * .3,
+                                    child: Center(
+                                      child: Text('Error'),
+                                    ),
+                                  );
+                                }
+                                return Container(
+                                  width: MediaQuery.of(context).size.width * .9,
+                                  height:
+                                      MediaQuery.of(context).size.height * .3,
+                                  child: Center(
+                                    child: CupertinoActivityIndicator(),
+                                  ),
+                                );
+                              }),
+                          SizedBox(
+                            height: 50,
                           ),
                         ],
                       ),
@@ -899,113 +665,5 @@ class _ShowInfoState extends ConsumerState<ShowInfo> {
                 child: CupertinoActivityIndicator(),
               );
             }));
-  }
-
-  Future<User> getUser(userid) async {
-    // var url = Uri.parse("http://127.0.0.1:8000/auth/getUserInfoStaff/");
-    var url = Uri.parse("https://backend.aurum.fitness/auth/getUserInfoStaff/");
-    try {
-      var response = await http.post(url, body: {
-        'userid': userid
-      }, headers: {
-        "Authorization": "Token $token",
-      });
-      print(response.body);
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> responseData = json.decode(response.body);
-        if (!responseData["active"]) {
-          showCupertinoDialog(
-              context: context,
-              builder: (_) {
-                return CupertinoAlertDialog(
-                  content: Text("Inactive User"),
-                  title: Icon(
-                    CupertinoIcons.exclamationmark_circle,
-                    size: 50,
-                    color: CupertinoColors.systemRed,
-                  ),
-                  actions: [
-                    CupertinoDialogAction(
-                      child: Text("Ok"),
-                      onPressed: () {
-                        Navigator.pop(_);
-                      },
-                    )
-                  ],
-                );
-              });
-        }
-        return User(
-            responseData["name"],
-            userid,
-            responseData["address"],
-            responseData["phone"],
-            responseData["plan"],
-            responseData["totalPayableAmount"],
-            responseData["alreadyPaid"],
-            responseData["duration"] != "None"
-                ? (int.parse(responseData["duration"]) / 30).toStringAsFixed(0)
-                : "0",
-            responseData["startingFrom"],
-            responseData["active"],
-            responseData["membershipStatus"],
-            responseData["attendanceStatus"],
-            responseData["pfp"]);
-      } else {
-        print("failed");
-        throw Exception('Failed to load post');
-      }
-    } catch (e) {
-      print(e);
-    }
-    return User(null, null, null, null, null, null, null, null, null, true,
-        false, false, "/media/ntf.png");
-  }
-}
-
-class User {
-  final String? name;
-  final String? Address;
-  final String? Membership_type;
-  final String? Phone_number;
-  final int? Total_Payable_Amount;
-  final int? amount_paid;
-  final String? Membership_duration;
-  final String? Membership_start_date;
-  final String? userid;
-  final bool? active;
-  final bool membershipStatus;
-  final String? profilePic;
-  final bool? attendanceStatus;
-
-  User(
-      this.name,
-      this.userid,
-      this.Address,
-      this.Phone_number,
-      this.Membership_type,
-      this.Total_Payable_Amount,
-      this.amount_paid,
-      this.Membership_duration,
-      this.Membership_start_date,
-      this.active,
-      this.membershipStatus,
-      this.attendanceStatus,
-      this.profilePic);
-
-  bool checkIfAnyIsNull() {
-    return [
-      name,
-      Address,
-      Phone_number,
-      Membership_type,
-      Total_Payable_Amount,
-      amount_paid,
-      Membership_duration,
-      Membership_start_date,
-      active,
-      membershipStatus,
-      attendanceStatus,
-    ].contains(null);
   }
 }
