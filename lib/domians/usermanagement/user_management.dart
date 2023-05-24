@@ -105,4 +105,18 @@ class UserManagement {
     }
     return User(userid: userid);
   }
+
+  Future<List> getUserAttendance(token, month, year) async {
+    var url = Uri.parse(
+        'https://backend.aurum.fitness/api/user/$userid/$year/$month/getAttendance');
+    var res = await http.get(url, headers: {
+      "Authorization": "Token $token",
+    });
+    if (res.statusCode == 200) {
+      final Map<String, dynamic> responseData = json.decode(res.body);
+      return responseData["attendance"];
+    } else {
+      throw Exception('Failed to load post');
+    }
+  }
 }

@@ -1,9 +1,11 @@
 import 'dart:convert';
 import 'package:aurumfit/domians/payments/Invoice.dart';
 import 'package:aurumfit/domians/payments/models/Invoice.dart';
+import 'package:aurumfit/domians/usermanagement/models/models.dart';
 import 'package:aurumfit/domians/usermanagement/serverRelated.dart';
 import 'package:aurumfit/domians/usermanagement/user_management.dart';
 import 'package:aurumfit/pages/search/components/InvoiceBlock.dart';
+import 'package:aurumfit/pages/search/components/UserAttendance.dart';
 import 'package:aurumfit/pages/search/components/paymentHistory.dart';
 import 'package:aurumfit/providers/auth/authprovider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -534,6 +536,28 @@ class _ShowInfoState extends ConsumerState<ShowInfo> {
                                         }
                                       }),
                           ),
+                          SizedBox(
+                            height: 30,
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 20, right: 20),
+                            child: Row(
+                              children: [
+                                Text(
+                                  "Attendance",
+                                  style: TextStyle(
+                                      fontFamily: 'SFPro',
+                                      fontSize: 20,
+                                      color: Color.fromARGB(217, 255, 255, 255),
+                                      fontWeight: FontWeight.w600),
+                                ),
+                              ],
+                            ),
+                          ),
+                          SizedBox(
+                            height: 15,
+                          ),
+                          UserAttendance(userid: userid),
                           SizedBox(
                             height: 30,
                           ),
