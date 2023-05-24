@@ -1,8 +1,11 @@
 import 'package:aurumfit/domians/payments/models/Invoice.dart';
 import 'package:aurumfit/pages/payments/components/InvoicingBlock.dart';
 import 'package:aurumfit/pages/payments/components/add_payment_to_invoice.dart';
+import 'package:aurumfit/pages/payments/components/changeDate.dart';
+import 'package:billing/billing.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class InvoiceDetails extends StatelessWidget {
   const InvoiceDetails({Key? key, required this.invoice, required this.userid})
@@ -42,6 +45,25 @@ class InvoiceDetails extends StatelessWidget {
                             },
                             child: Text(
                               "Add Payments to Invoice",
+                              style: TextStyle(
+                                  fontFamily: "SFPro",
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500),
+                            ),
+                          ),
+                          CupertinoActionSheetAction(
+                            onPressed: () async {
+                              Navigator.pop(context);
+                              Navigator.push(
+                                  context,
+                                  CupertinoPageRoute(
+                                      builder: (context) => ChangeInvoiceDate(
+                                            invoice: invoice,
+                                            userid: userid,
+                                          )));
+                            },
+                            child: Text(
+                              "Change Payment Date",
                               style: TextStyle(
                                   fontFamily: "SFPro",
                                   fontSize: 16,
