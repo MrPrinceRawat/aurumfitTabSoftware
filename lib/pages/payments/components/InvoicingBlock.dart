@@ -6,11 +6,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class InvoicingBlock extends ConsumerStatefulWidget {
-  const InvoicingBlock({Key? key, required this.userid, this.invoice})
+  const InvoicingBlock(
+      {Key? key, required this.userid, this.invoice, this.showDetails = true})
       : super(key: key);
 
   final String userid;
   final InvoiceModel? invoice;
+  final bool showDetails;
 
   @override
   ConsumerState<InvoicingBlock> createState() => _InvoicingBlockState();
@@ -130,7 +132,7 @@ class _InvoicingBlockState extends ConsumerState<InvoicingBlock> {
                                 SizedBox(
                                   width: 10,
                                 ),
-                                widget.invoice != null
+                                widget.showDetails == false
                                     ? Container()
                                     : CupertinoButton(
                                         onPressed: () {
