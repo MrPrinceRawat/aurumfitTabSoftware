@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:aurumfit/providers/auth/authprovider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 checkforPendingPrintables() async {
@@ -185,16 +186,16 @@ markUserAttendance(userid, token) async {
   }
 }
 
-getAttendances(ref) async {
-  var date = DateTime.now().year.toString() +
-      "-" +
-      DateTime.now().month.toString() +
-      "-" +
-      DateTime.now().day.toString();
+getAttendances(ref, String givenDate) async {
+  var date;
+  if (givenDate != "") {
+    date = givenDate;
+  } else {
+    date = DateFormat("yyyy-MM-dd").format(DateTime.now());
+  }
   final token = ref.read(AuthTokenProvider.notifier).state;
   print("token: $token");
-  var url =
-      Uri.parse("https://backend.aurum.fitness/api/api/$date/getAttendance");
+  var url = Uri.parse("https://backend.aurum.fitness/api/$date/getAttendance");
   var response = await http.get(url, headers: {
     "Accept": "application/json",
     "Content-Type": "application/json",
@@ -215,7 +216,6 @@ getAttendancesCount(token) async {
     "Content-Type": "application/json",
     "Authorization": "Token $token",
   });
-  print(response.body);
   if (jsonDecode(response.body)[0] != "No attendance found.") {
     return {'error': false, 'message': jsonDecode(response.body)};
   } else {

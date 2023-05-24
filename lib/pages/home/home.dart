@@ -168,114 +168,75 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               fit: BoxFit.cover,
             ),
           ),
-          child: Center(
-              child: Column(children: [
-            Container(
-              margin: EdgeInsets.only(top: 40),
-              height: MediaQuery.of(context).size.height / 4,
-              child: ClipRect(
-                clipBehavior: Clip.hardEdge,
-                child: BackdropFilter(
-                  filter: new ImageFilter.blur(sigmaX: 20.0, sigmaY: 20.0),
-                  child: Container(
-                    width: MediaQuery.of(context).size.width - 20,
-                    height: MediaQuery.of(context).size.height / 4,
-                    padding: EdgeInsets.all(0),
-                    clipBehavior: Clip.hardEdge,
-                    decoration: BoxDecoration(
-                        color: CupertinoColors.white.withOpacity(.5),
-                        borderRadius: BorderRadius.circular(20)),
-                    child: LineChart(
-                      LineChartData(
-                        gridData: FlGridData(
-                          show: false,
-                        ),
-                        titlesData: FlTitlesData(
-                          show: false,
-                        ),
-                        borderData: FlBorderData(
-                          show: false,
-                        ),
-                        minX: 0,
-                        minY: 0,
-                        maxY: 100,
-                        lineBarsData: [
-                          LineChartBarData(
-                            spots: [
-                              // FlSpot(0, 3),
-                              // FlSpot(2.6, 2),
-                              // FlSpot(4.9, 5),
-                              // FlSpot(6.8, 3.1),
-                              // FlSpot(8, 4),
-                              // FlSpot(9.5, 3),
-                              // FlSpot(11, 4),
-                              // loop through the attendances and add the data
-                              for (var i = 0; i < attendances.length; i++)
-                                FlSpot(i.toDouble(),
-                                    attendances[i]["count"].toDouble()),
-                            ],
-                            isCurved: true,
-                            colors: gradientColors,
-                            barWidth: 5,
-                            isStrokeCapRound: true,
-                            dotData: FlDotData(
-                              show: false,
-                            ),
-                            belowBarData: BarAreaData(
-                              show: true,
-                              colors: gradientColors
-                                  .map((color) => color.withOpacity(0.3))
-                                  .toList(),
-                            ),
+          child: SingleChildScrollView(
+            child: Column(children: [
+              Container(
+                margin: EdgeInsets.only(top: 40),
+                height: MediaQuery.of(context).size.height / 4,
+                child: ClipRRect(
+                  clipBehavior: Clip.hardEdge,
+                  child: BackdropFilter(
+                    filter: new ImageFilter.blur(sigmaX: 20.0, sigmaY: 20.0),
+                    child: Container(
+                      width: MediaQuery.of(context).size.width - 40,
+                      height: MediaQuery.of(context).size.height / 4,
+                      padding: EdgeInsets.all(0),
+                      clipBehavior: Clip.hardEdge,
+                      decoration: BoxDecoration(
+                          color: CupertinoColors.white.withOpacity(.5),
+                          borderRadius: BorderRadius.circular(20)),
+                      child: LineChart(
+                        LineChartData(
+                          gridData: FlGridData(
+                            show: false,
                           ),
-                        ],
+                          titlesData: FlTitlesData(
+                            show: false,
+                          ),
+                          borderData: FlBorderData(
+                            show: false,
+                          ),
+                          minX: 0,
+                          minY: 0,
+                          maxY: 100,
+                          lineBarsData: [
+                            LineChartBarData(
+                              spots: [
+                                for (var i = 0; i < attendances.length; i++)
+                                  FlSpot(i.toDouble(),
+                                      attendances[i]["count"].toDouble()),
+                              ],
+                              isCurved: true,
+                              colors: gradientColors,
+                              barWidth: 5,
+                              isStrokeCapRound: true,
+                              dotData: FlDotData(
+                                show: false,
+                              ),
+                              belowBarData: BarAreaData(
+                                show: true,
+                                colors: gradientColors
+                                    .map((color) => color.withOpacity(0.3))
+                                    .toList(),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
-            GestureDetector(
-              onTap: () {
-                get_expired_memberships();
-              },
-              child: Container(
-                width: MediaQuery.of(context).size.width,
-                height: MediaQuery.of(context).size.height / 4,
-                padding: EdgeInsets.only(top: 20),
-                decoration:
-                    BoxDecoration(borderRadius: BorderRadius.circular(20)),
+              SizedBox(
+                height: 20,
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    ClipRect(
-                      clipBehavior: Clip.hardEdge,
-                      child: BackdropFilter(
-                        filter:
-                            new ImageFilter.blur(sigmaX: 20.0, sigmaY: 20.0),
-                        child: Container(
-                          width: MediaQuery.of(context).size.width / 2,
-                          height: MediaQuery.of(context).size.height / 4,
-                          decoration: BoxDecoration(
-                              color: CupertinoColors.white.withOpacity(.5),
-                              borderRadius: BorderRadius.circular(20)),
-                          child: Padding(
-                            padding: const EdgeInsets.all(20.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "Expired Membership",
-                                  style: TextStyle(
-                                      color: CupertinoColors.darkBackgroundGray,
-                                      fontFamily: "SFPro"),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
+                    AttendanceWidget(),
                     GestureDetector(
                       onTap: (() {
                         Navigator.push(
@@ -283,10 +244,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             CupertinoPageRoute(
                                 builder: (context) => DynamicQrCode()));
                       }),
-                      child: ClipRect(
+                      child: ClipRRect(
+                        clipBehavior: Clip.antiAlias,
                         child: BackdropFilter(
-                          filter:
-                              new ImageFilter.blur(sigmaX: 20.0, sigmaY: 20.0),
+                          filter: ImageFilter.blur(sigmaX: 20.0, sigmaY: 20.0),
                           child: Container(
                             width: MediaQuery.of(context).size.width / 2.5,
                             height: MediaQuery.of(context).size.height / 4,
@@ -325,12 +286,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   ],
                 ),
               ),
-            ),
-            SizedBox(
-              height: 20,
-            ),
-            AttendanceWidget()
-          ])),
+              SizedBox(
+                height: 100,
+              ),
+            ]),
+          ),
         ));
   }
 }
