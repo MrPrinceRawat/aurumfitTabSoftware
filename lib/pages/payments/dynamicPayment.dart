@@ -4,7 +4,6 @@ import 'package:aurumfit/components/failurepromptadpater.dart';
 import 'package:aurumfit/providers/auth/authprovider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -81,91 +80,6 @@ class _DynamicQrCodeState extends ConsumerState<DynamicQrCode> {
         _loading = false;
       });
       print(e);
-    }
-  }
-
-  Future<void> Print() async {
-    setState(() {
-      _loading = true;
-    });
-    final prefs = await SharedPreferences.getInstance();
-    final ip = prefs.getString('print_server_ip') ?? "";
-    print(ip);
-    if (ip == "") {
-      setState(() {
-        _loading = false;
-      });
-    } else {
-      var url = Uri.parse("http://$ip:13687");
-      Map data = {
-        "name": name.text,
-        "number": phone.text,
-        "price": (int.parse(amount.text) + int.parse(old.text)).toString(),
-        "paymentmode": "UPI",
-        "plan": plan.text + "(${months.text} months)",
-        "months": months.text,
-        "invoiceno": orderId,
-        "subtotal": total.text
-      };
-      var body = json.encode(data);
-      var response = await http.post(url, body: body, headers: {
-        "Accept": "application/json",
-        "Content-Type": "application/json"
-      });
-      print(response.body);
-      if (response.statusCode == 200) {
-        setState(() {
-          _loading = false;
-        });
-        showCupertinoDialog(
-            context: context,
-            builder: (_) {
-              return CupertinoAlertDialog(
-                title: Text("Success"),
-                content: Text("Printing Successful"),
-                actions: <Widget>[
-                  CupertinoDialogAction(
-                    child: const Text('No'),
-                    onPressed: () {
-                      Navigator.pop(_);
-                    },
-                  ),
-                  CupertinoDialogAction(
-                    child: Text("Ok"),
-                    onPressed: () {
-                      Navigator.pop(_);
-                    },
-                  )
-                ],
-              );
-            });
-      } else {
-        setState(() {
-          _loading = false;
-        });
-        showCupertinoDialog(
-            context: context,
-            builder: (_) {
-              return CupertinoAlertDialog(
-                title: Text("Error"),
-                content: Text("Printing Failed"),
-                actions: <Widget>[
-                  CupertinoDialogAction(
-                    child: const Text('No'),
-                    onPressed: () {
-                      Navigator.pop(_);
-                    },
-                  ),
-                  CupertinoDialogAction(
-                    child: Text("Ok"),
-                    onPressed: () {
-                      Navigator.pop(_);
-                    },
-                  )
-                ],
-              );
-            });
-      }
     }
   }
 

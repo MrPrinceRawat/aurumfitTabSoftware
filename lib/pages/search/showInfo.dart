@@ -42,6 +42,8 @@ class _ShowInfoState extends ConsumerState<ShowInfo> {
   var user = null;
   String token = "";
   late UserManagement usermanagement;
+  late Future<InvoiceModel> invoice;
+  late Future paymentHistoryFuture;
 
   Future loadPaymentHistory() async {
     var url = 'https://backend.aurum.fitness/api/getPaymentHistoryStaff/';
@@ -70,6 +72,8 @@ class _ShowInfoState extends ConsumerState<ShowInfo> {
     token = ref.read(AuthTokenProvider.notifier).state;
     usermanagement = UserManagement(userid: widget.userid);
     myFuture = usermanagement.getUserInfo(token);
+    invoice = Invoice(userid: widget.userid).getInvoice(token);
+    paymentHistoryFuture = loadPaymentHistory();
     setState(() {
       userid = widget.userid;
     });
@@ -552,7 +556,7 @@ class _ShowInfoState extends ConsumerState<ShowInfo> {
                             height: 15,
                           ),
                           FutureBuilder(
-                              future: Invoice(userid: userid).getInvoice(token),
+                              future: invoice,
                               builder: (context,
                                   AsyncSnapshot<InvoiceModel> snapshot) {
                                 if (snapshot.connectionState ==
@@ -614,7 +618,7 @@ class _ShowInfoState extends ConsumerState<ShowInfo> {
                             height: 5,
                           ),
                           FutureBuilder(
-                              future: loadPaymentHistory(),
+                              future: paymentHistoryFuture,
                               builder: (context, AsyncSnapshot snapshot) {
                                 if (snapshot.connectionState ==
                                     ConnectionState.waiting) {
