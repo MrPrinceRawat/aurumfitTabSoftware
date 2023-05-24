@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:aurumfit/pages/payments/bill_user.dart';
 import 'package:aurumfit/pages/payments/Subscription.dart';
 import 'package:aurumfit/components/galary.dart';
+import 'package:aurumfit/pages/payments/createInvoice.dart';
 import 'package:aurumfit/pages/payments/dynamicPayment.dart';
 import 'package:aurumfit/pages/utility/printInvoice.dart';
 import 'package:aurumfit/pages/utility/tokenQR.dart';
@@ -258,6 +259,40 @@ class _UtilityState extends State<Utility> {
                                 context,
                                 CupertinoPageRoute(
                                     builder: (context) => BillUser()));
+                          },
+                        ),
+                        ListTile(
+                          contentPadding: EdgeInsets.only(
+                              left: 30, right: 30, bottom: 10, top: 10),
+                          leading: Container(
+                            padding: EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                                color: Color(0xff2ca3c7),
+                                border: Border.fromBorderSide(BorderSide(
+                                    color: Color(0xff2ca3c7), width: 2)),
+                                borderRadius: BorderRadius.circular(10)),
+                            child: Icon(
+                              CupertinoIcons.doc,
+                              color: Color(0xffffffff),
+                            ),
+                          ),
+                          title: Text(
+                            "Create Invoice",
+                            style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w400,
+                                color: CupertinoColors.white.withOpacity(.6),
+                                fontFamily: 'SFPro'),
+                          ),
+                          trailing: Icon(
+                            CupertinoIcons.right_chevron,
+                            color: Color(0xffdedede),
+                          ),
+                          onTap: () {
+                            Navigator.push(
+                                context,
+                                CupertinoPageRoute(
+                                    builder: (context) => CreateUserInvoice()));
                           },
                         ),
                         ListTile(
