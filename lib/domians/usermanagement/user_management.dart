@@ -3,11 +3,72 @@ import 'dart:convert';
 import 'package:aurumfit/domians/usermanagement/models/models.dart';
 import 'package:http/http.dart' as http;
 
+/// This class is used to manage the user.
+///
+/// ### Description
+/// This class is used to manage the user.
+/// It does this by using the [UserModel] class.
+/// It is used to get the user data from the database.
+///
+/// ### Parameters
+/// This class has the following parameters:
+///
+/// | Type | Name | Description |
+/// | :--- | :--- | :--- |
+/// | String | userid | The id of the user. |
+///
+/// ### Examples
+/// ```dart
+/// UserManagement userManagement = UserManagement(userid: "userid");
+/// ```
+///
+/// ### Methods
+/// This class has the following methods:
+///
+/// #### getUserInfo
+/// This method is used to get the user data from the database.
+///
+/// ##### Parameters
+/// This method has the following parameters:
+///
+/// | Type | Name | Description |
+/// | :--- | :--- | :--- |
+/// | String | token | The token of the user. |
+///
+/// ##### Examples
+/// ```dart
+/// User user = await userManagement.getUserInfo("token");
+/// ```
+
 class UserManagement {
   late String userid;
 
   UserManagement({required this.userid});
 
+  /// This method is used to get the user data from the database.
+  ///
+  /// ##### Parameters
+  /// This method has the following parameters:
+  ///
+  /// | Type | Name | Description |
+  /// | :--- | :--- | :--- |
+  /// | String | token | The token of the user. |
+  ///
+  /// ##### Examples
+  /// ```dart
+  /// User user = await userManagement.getUserInfo("token");
+  /// ```
+  /// This method returns a [User] object.
+  /// The [User] object contains the following data:
+  /// - [userid]
+  /// - [name]
+  /// - [dob]
+  /// - [Phone_number]
+  /// - [Address]
+  ///
+  /// for more info on the [User] object, see [UserModel].
+  ///
+  ///
   Future<User> getUserInfo(token) async {
     var url = Uri.parse("https://backend.aurum.fitness/auth/getUserInfoStaff/");
     try {

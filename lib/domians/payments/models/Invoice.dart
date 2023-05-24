@@ -1,3 +1,34 @@
+/// This class a model for the Invoice
+///
+/// @param params for the InvoiceModel
+///  - userid: User id of the user whose invoice is to be fetched.
+///  - InvoiceID: Invoice id of the user whose invoice is to be fetched.
+///  - date: Date of the invoice.
+///  - amount: Amount of the invoice.
+///  - amount_paid: Amount paid of the invoice.
+///  - plan: Plan of the invoice.
+///  - duration: Duration of the invoice.
+///  - payments: Payments of the invoice.
+///  - paid: Paid of the invoice.
+///
+/// @returns [InvoiceModel]
+///
+/// Usage:
+/// ```dart
+/// InvoiceModel invoiceModel = InvoiceModel(
+///  userid: userid,
+/// InvoiceID: InvoiceID,
+/// date: date,
+/// amount: amount,
+/// amount_paid: amount_paid,
+/// plan: plan,
+/// duration: duration,
+/// payments: payments,
+/// paid: paid,
+/// );
+/// ```
+///
+///
 class InvoiceModel {
   late String userid;
   late String InvoiceID;
@@ -20,6 +51,14 @@ class InvoiceModel {
       required this.payments,
       required this.paid});
 
+  /// This function is used to convert the InvoiceModel object to json.
+  ///
+  /// @param json
+  ///  - json: Json object of the InvoiceModel.
+  ///
+  /// @returns [Map<String, dynamic>]
+  ///  - Map<String, dynamic>: Json object of the InvoiceModel.
+  ///
   InvoiceModel.fromJson(Map<String, dynamic> json) {
     InvoiceID = json['InvoiceID'];
     date = json['date'];
@@ -31,6 +70,12 @@ class InvoiceModel {
     paid = json['paid'];
   }
 
+  /// This function is used to convert the InvoiceModel object to json.
+  ///
+  /// @returns [Map<String, dynamic>]
+  /// - Map<String, dynamic>: Json object of the InvoiceModel.
+  ///
+  ///
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
     data['userid'] = this.userid;

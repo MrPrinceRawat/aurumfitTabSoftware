@@ -1,5 +1,3 @@
-// A class to hold the authentication token for the entire app
-
 import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
