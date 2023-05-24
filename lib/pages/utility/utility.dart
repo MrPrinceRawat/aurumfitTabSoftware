@@ -1,6 +1,5 @@
 import 'dart:convert';
-
-import 'package:aurumfit/pages/utility/PrintRecipt.dart';
+import 'package:aurumfit/pages/payments/bill_user.dart';
 import 'package:aurumfit/pages/payments/Subscription.dart';
 import 'package:aurumfit/components/galary.dart';
 import 'package:aurumfit/pages/payments/dynamicPayment.dart';
@@ -258,7 +257,7 @@ class _UtilityState extends State<Utility> {
                             Navigator.push(
                                 context,
                                 CupertinoPageRoute(
-                                    builder: (context) => PrintRecipt()));
+                                    builder: (context) => BillUser()));
                           },
                         ),
                         ListTile(
