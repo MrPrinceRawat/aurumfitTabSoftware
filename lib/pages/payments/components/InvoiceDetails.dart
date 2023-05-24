@@ -28,7 +28,11 @@ class InvoiceDetails extends StatelessWidget {
                   SizedBox(
                     height: 20,
                   ),
-                  InvoicingBlock(userid: userid, invoice: invoice),
+                  InvoicingBlock(
+                    userid: userid,
+                    invoice: invoice,
+                    showDetails: false,
+                  ),
                   SizedBox(
                     height: 20,
                   ),

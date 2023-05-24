@@ -45,6 +45,7 @@ class InvoiceModel {
   }
 
   // Getters
+  String get getInvoiceID => InvoiceID;
   String get getUserid => userid;
   String get getDate => date;
   double get getAmount => amount;
