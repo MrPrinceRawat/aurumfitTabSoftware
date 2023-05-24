@@ -583,7 +583,7 @@ class _ShowInfoState extends ConsumerState<ShowInfo> {
                                     height:
                                         MediaQuery.of(context).size.height * .3,
                                     child: Center(
-                                      child: Text('Error'),
+                                      child: Text('Error: ${snapshot.error}'),
                                     ),
                                   );
                                 }
