@@ -1,6 +1,8 @@
 import 'package:aurumfit/domians/payments/models/Invoice.dart';
 import 'package:aurumfit/pages/payments/components/InvoicingBlock.dart';
+import 'package:aurumfit/pages/payments/components/add_payment_to_invoice.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 
 class InvoiceDetails extends StatelessWidget {
   const InvoiceDetails({Key? key, required this.invoice, required this.userid})
@@ -13,11 +15,60 @@ class InvoiceDetails extends StatelessWidget {
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
         navigationBar: CupertinoNavigationBar(
-          middle: Text(
-            "Invoice Details",
-            style: TextStyle(fontFamily: "SFPro", color: CupertinoColors.white),
-          ),
-        ),
+            middle: Text(
+              "Invoice Details",
+              style:
+                  TextStyle(fontFamily: "SFPro", color: CupertinoColors.white),
+            ),
+            trailing: CupertinoButton(
+              padding: EdgeInsets.zero,
+              onPressed: () {
+                showCupertinoModalPopup(
+                    context: context,
+                    builder: (context) {
+                      return CupertinoActionSheet(
+                        actions: [
+                          CupertinoActionSheetAction(
+                            onPressed: () {
+                              Navigator.pop(context);
+                              Navigator.push(
+                                  context,
+                                  CupertinoPageRoute(
+                                      builder: (context) =>
+                                          AddPaymentsToInvoice(
+                                            invoice: invoice,
+                                            userid: userid,
+                                          )));
+                            },
+                            child: Text(
+                              "Add Payments to Invoice",
+                              style: TextStyle(
+                                  fontFamily: "SFPro",
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500),
+                            ),
+                          ),
+                        ],
+                        cancelButton: CupertinoActionSheetAction(
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          child: Text(
+                            "Cancel",
+                            style: TextStyle(
+                                fontFamily: "SFPro",
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500),
+                          ),
+                        ),
+                      );
+                    });
+              },
+              child: Icon(
+                CupertinoIcons.ellipsis_circle,
+                color: CupertinoColors.inactiveGray,
+              ),
+            )),
         child: SafeArea(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
