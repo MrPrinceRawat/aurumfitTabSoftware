@@ -32,8 +32,11 @@ class InvoiceBlock extends StatelessWidget {
             padding: EdgeInsets.symmetric(horizontal: 10),
             decoration: BoxDecoration(
               color: CupertinoColors.darkBackgroundGray,
-              borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(10), topRight: Radius.circular(10)),
+              borderRadius: invoice!.payments.length > 0
+                  ? BorderRadius.only(
+                      topLeft: Radius.circular(10),
+                      topRight: Radius.circular(10))
+                  : BorderRadius.circular(10),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -117,12 +120,11 @@ class InvoiceBlock extends StatelessWidget {
             height: 2,
             child: Row(children: [
               Container(
-                width: (MediaQuery.of(context).size.width *
+                width: ((MediaQuery.of(context).size.width - 64) *
                             (invoice!.amount_paid / invoice!.amount)) >
                         0
-                    ? (MediaQuery.of(context).size.width *
-                            (invoice!.amount_paid / invoice!.amount)) -
-                        64
+                    ? ((MediaQuery.of(context).size.width - 64) *
+                        (invoice!.amount_paid / invoice!.amount))
                     : 0,
                 color: Color.fromARGB(255, 0, 217, 255),
               ),
