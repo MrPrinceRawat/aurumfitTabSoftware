@@ -615,7 +615,7 @@ class _ShowInfoState extends ConsumerState<ShowInfo> {
                             ),
                           ),
                           SizedBox(
-                            height: 5,
+                            height: 15,
                           ),
                           FutureBuilder(
                               future: paymentHistoryFuture,
@@ -625,8 +625,6 @@ class _ShowInfoState extends ConsumerState<ShowInfo> {
                                   return Container(
                                     width:
                                         MediaQuery.of(context).size.width * .9,
-                                    height:
-                                        MediaQuery.of(context).size.height * .3,
                                     child: Center(
                                       child: CupertinoActivityIndicator(),
                                     ),
