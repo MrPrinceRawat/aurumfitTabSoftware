@@ -2,12 +2,14 @@ import 'package:aurumfit/domians/payments/models/Invoice.dart';
 import 'package:aurumfit/pages/payments/components/InvoicingBlock.dart';
 import 'package:aurumfit/pages/payments/components/add_payment_to_invoice.dart';
 import 'package:aurumfit/pages/payments/components/changeDate.dart';
+import 'package:aurumfit/providers/auth/authprovider.dart';
 import 'package:billing/billing.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-class InvoiceDetails extends StatelessWidget {
+class InvoiceDetails extends ConsumerWidget {
   const InvoiceDetails({Key? key, required this.invoice, required this.userid})
       : super(key: key);
 
@@ -15,7 +17,7 @@ class InvoiceDetails extends StatelessWidget {
   final String userid;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext buildcontent, WidgetRef ref) {
     return CupertinoPageScaffold(
         navigationBar: CupertinoNavigationBar(
             middle: Text(
@@ -27,10 +29,28 @@ class InvoiceDetails extends StatelessWidget {
               padding: EdgeInsets.zero,
               onPressed: () {
                 showCupertinoModalPopup(
-                    context: context,
+                    context: buildcontent,
                     builder: (context) {
                       return CupertinoActionSheet(
                         actions: [
+                          CupertinoActionSheetAction(
+                            onPressed: () {
+                              Navigator.pop(context);
+                              Billing().toggleInvoicePaymentStatus(
+                                  !invoice.paid,
+                                  invoice.InvoiceID,
+                                  ref.read(AuthTokenProvider.notifier).state,
+                                  BillingModel(id: invoice.InvoiceID));
+                              Navigator.pop(buildcontent);
+                            },
+                            child: Text(
+                              "Toggle Payment Status",
+                              style: TextStyle(
+                                  fontFamily: "SFPro",
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500),
+                            ),
+                          ),
                           CupertinoActionSheetAction(
                             onPressed: () {
                               Navigator.pop(context);
