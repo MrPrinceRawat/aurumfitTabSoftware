@@ -31,7 +31,7 @@ class _AttendanceWidgetState extends ConsumerState<AttendanceWidget> {
     }
 
     setState(() {
-      attendances = attendance["message"]["data"];
+      attendances = attendance["message"]["users"];
     });
   }
 

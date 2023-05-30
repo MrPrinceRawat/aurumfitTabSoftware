@@ -60,7 +60,7 @@ class _attendanceDetailsState extends ConsumerState<attendanceDetails> {
     }
 
     setState(() {
-      this.attendance = attendance["message"]["data"];
+      this.attendance = attendance["message"]["users"];
       _isloading = false;
     });
   }
