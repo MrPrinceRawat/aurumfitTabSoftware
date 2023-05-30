@@ -19,12 +19,13 @@ class SearchExpanded extends ConsumerStatefulWidget {
 
 class _SearchExpandedState extends ConsumerState<SearchExpanded> {
   bool _isSearching = false;
-  List active_users = [];
-  List inactive_users = [];
+  List users = [];
   Timer? _debounce;
   var userId = new TextEditingController();
   var currentPageLength = 1;
   String token = "";
+  String searchText = "";
+  int offset = 0;
 
   @override
   void initState() {
@@ -44,24 +45,26 @@ class _SearchExpandedState extends ConsumerState<SearchExpanded> {
     }
 
     _debounce = Timer(Duration(milliseconds: 500), () {
-      findUser(searchText);
+      setState(() {
+        this.searchText = searchText;
+        offset = 0;
+      });
+      findUser();
     });
   }
 
-  Future<void> findUser(entered) async {
+  Future<void> findUser() async {
     // Make a POST request to aurumfitnesscommunicator.ml to get the user list
-    var url = Uri.parse('https://backend.aurum.fitness/auth/getUser/v2/');
+    var url = Uri.parse(
+        'https://backend.aurum.fitness/auth/getUser/v2/?limit=50&offset=$offset');
     var response = await http.post(url, body: {
-      'name': entered
+      'name': searchText
     }, headers: {
       "Authorization": "Token $token",
     });
     var users = jsonDecode(response.body);
-    print(users);
-    print(users['active_users']);
     setState(() {
-      active_users = users['active_users'];
-      inactive_users = users['inactive_users'];
+      this.users += users;
     });
   }
 
@@ -155,7 +158,7 @@ class _SearchExpandedState extends ConsumerState<SearchExpanded> {
                       padding: const EdgeInsets.only(left: 20),
                       child: Row(
                         children: [
-                          Text("Active Users",
+                          Text("Users",
                               style: TextStyle(
                                   fontSize: 18,
                                   color: CupertinoColors.systemGrey,
@@ -166,266 +169,207 @@ class _SearchExpandedState extends ConsumerState<SearchExpanded> {
                     ),
                     SizedBox(height: 20),
                     Container(
-                      height: 100 * active_users.length.toDouble(),
                       child: ListView.builder(
                         shrinkWrap: true,
                         physics: BouncingScrollPhysics(),
                         itemBuilder: (context, index) {
-                          return Slidable(
-                              startActionPane: ActionPane(
-                                // A motion is a widget used to control how the pane animates.
-                                motion: const ScrollMotion(),
+                          return index == users.length
+                              ? CupertinoButton(
+                                  padding: EdgeInsets.only(top: 10),
+                                  child: Text("Load More"),
+                                  onPressed: () {
+                                    setState(() {
+                                      offset += 20;
+                                    });
+                                    findUser();
+                                  })
+                              : Slidable(
+                                  startActionPane: ActionPane(
+                                    // A motion is a widget used to control how the pane animates.
+                                    motion: const ScrollMotion(),
 
-                                extentRatio: 0.2,
-                                dragDismissible: false,
+                                    extentRatio: 0.2,
+                                    dragDismissible: false,
 
-                                // A pane can dismiss the Slidable.
-                                // All actions are defined in the children parameter.
-                                children: [
-                                  // A SlidableAction can have an icon and/or a label.
-                                  SlidableAction(
-                                    onPressed: (context) =>
-                                        markAtten(active_users[index][0]),
-                                    backgroundColor: CupertinoColors.systemBlue,
-                                    foregroundColor: Colors.white,
-                                    icon: CupertinoIcons.calendar_badge_plus,
-                                    label: 'Add Attendance',
+                                    // A pane can dismiss the Slidable.
+                                    // All actions are defined in the children parameter.
+                                    children: [
+                                      // A SlidableAction can have an icon and/or a label.
+                                      SlidableAction(
+                                        onPressed: (context) =>
+                                            markAtten(users[index]['username']),
+                                        backgroundColor:
+                                            CupertinoColors.systemBlue,
+                                        foregroundColor: Colors.white,
+                                        icon:
+                                            CupertinoIcons.calendar_badge_plus,
+                                        label: 'Add Attendance',
+                                      ),
+                                    ],
                                   ),
-                                ],
-                              ),
-                              child: GestureDetector(
-                                onTap: () {
-                                  Navigator.push(
-                                      context,
-                                      CupertinoPageRoute(
-                                          builder: (context) => ShowInfo(
-                                                userid: active_users[index][0],
-                                              )));
-                                },
-                                child: Container(
-                                  margin: EdgeInsets.only(top: 10),
-                                  padding: EdgeInsets.all(10),
-                                  // add a margin bottom
-                                  decoration: BoxDecoration(
-                                      border: Border(
-                                          bottom: BorderSide(
-                                    color:
-                                        CupertinoColors.white.withOpacity(.2),
-                                    width: 1,
-                                  ))),
                                   child: GestureDetector(
                                     onTap: () {
                                       Navigator.push(
                                           context,
                                           CupertinoPageRoute(
                                               builder: (context) => ShowInfo(
-                                                    userid: active_users[index]
-                                                        [0],
+                                                    userid: users[index]
+                                                        ['username'],
                                                   )));
                                     },
                                     child: Container(
-                                      height: 60,
-                                      width: MediaQuery.of(context).size.width -
-                                          40,
+                                      margin: EdgeInsets.only(top: 10),
+                                      padding: EdgeInsets.all(10),
+                                      // add a margin bottom
                                       decoration: BoxDecoration(
-                                          borderRadius:
-                                              BorderRadius.circular(10)),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.start,
-                                        children: [
-                                          Container(
-                                            child: CircleAvatar(
-                                                radius: 40,
-                                                backgroundColor:
-                                                    CupertinoColors.white,
-                                                child: active_users[index][1] !=
-                                                        Null
-                                                    ? CachedNetworkImage(
-                                                        imageUrl:
-                                                            "https://backend.aurum.fitness/" +
-                                                                active_users[
-                                                                    index][1],
-                                                        imageBuilder: (context,
-                                                                imageProvider) =>
-                                                            Container(
-                                                          width: 80.0,
-                                                          height: 80.0,
-                                                          decoration:
-                                                              BoxDecoration(
-                                                            shape:
-                                                                BoxShape.circle,
-                                                            image: DecorationImage(
-                                                                image:
-                                                                    imageProvider,
-                                                                fit: BoxFit
-                                                                    .cover),
-                                                          ),
-                                                        ),
-                                                        placeholder: (context,
-                                                                url) =>
-                                                            CupertinoActivityIndicator(
-                                                          color: CupertinoColors
-                                                              .darkBackgroundGray,
-                                                        ),
-                                                        errorWidget: (context,
-                                                                url, error) =>
-                                                            Icon(CupertinoIcons
-                                                                .exclamationmark_circle),
-                                                      )
-                                                    : CircleAvatar(
-                                                        radius: 48,
-                                                        backgroundImage:
-                                                            NetworkImage(
-                                                                "https://backend.aurum.fitness/media/" +
-                                                                    "ntf.png"),
-                                                      )),
-                                          ),
-                                          Row(
+                                          border: Border(
+                                              bottom: BorderSide(
+                                        color: CupertinoColors.white
+                                            .withOpacity(.2),
+                                        width: 1,
+                                      ))),
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          Navigator.push(
+                                              context,
+                                              CupertinoPageRoute(
+                                                  builder: (context) =>
+                                                      ShowInfo(
+                                                        userid: users[index]
+                                                            ['username'],
+                                                      )));
+                                        },
+                                        child: Container(
+                                          height: 60,
+                                          width: MediaQuery.of(context)
+                                                  .size
+                                                  .width -
+                                              40,
+                                          decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(10)),
+                                          child: Row(
                                             mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
+                                                MainAxisAlignment.start,
                                             children: [
                                               Container(
-                                                margin:
-                                                    EdgeInsets.only(left: 20),
-                                                child: Text(
-                                                  active_users[index][0],
-                                                  style: TextStyle(
-                                                      fontSize: 18,
-                                                      color: CupertinoColors
-                                                          .systemGrey,
-                                                      fontFamily: 'SFPro',
-                                                      fontWeight:
-                                                          FontWeight.w400),
-                                                ),
+                                                child: CircleAvatar(
+                                                    radius: 40,
+                                                    backgroundColor:
+                                                        CupertinoColors.white,
+                                                    child: users[index]
+                                                                ['pic'] !=
+                                                            Null
+                                                        ? CachedNetworkImage(
+                                                            imageUrl:
+                                                                "https://backend.aurum.fitness/" +
+                                                                    users[index]
+                                                                        ['pic'],
+                                                            imageBuilder: (context,
+                                                                    imageProvider) =>
+                                                                Container(
+                                                              width: 80.0,
+                                                              height: 80.0,
+                                                              decoration:
+                                                                  BoxDecoration(
+                                                                shape: BoxShape
+                                                                    .circle,
+                                                                image: DecorationImage(
+                                                                    image:
+                                                                        imageProvider,
+                                                                    fit: BoxFit
+                                                                        .cover),
+                                                              ),
+                                                            ),
+                                                            placeholder: (context,
+                                                                    url) =>
+                                                                CupertinoActivityIndicator(
+                                                              color: CupertinoColors
+                                                                  .darkBackgroundGray,
+                                                            ),
+                                                            errorWidget: (context,
+                                                                    url,
+                                                                    error) =>
+                                                                Icon(CupertinoIcons
+                                                                    .exclamationmark_circle),
+                                                          )
+                                                        : CircleAvatar(
+                                                            radius: 48,
+                                                            backgroundImage:
+                                                                NetworkImage(
+                                                                    "https://backend.aurum.fitness/media/" +
+                                                                        "ntf.png"),
+                                                          )),
+                                              ),
+                                              Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                children: [
+                                                  Container(
+                                                    margin: EdgeInsets.only(
+                                                        left: 20),
+                                                    child: Column(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .center,
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        Text(
+                                                          users[index]
+                                                              ['username'],
+                                                          style: TextStyle(
+                                                              fontSize: 18,
+                                                              color: users[
+                                                                          index]
+                                                                      [
+                                                                      'is_active']
+                                                                  ? CupertinoColors
+                                                                      .lightBackgroundGray
+                                                                  : CupertinoColors
+                                                                      .systemGrey,
+                                                              fontFamily:
+                                                                  'SFPro',
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w400),
+                                                        ),
+                                                        !users[index]
+                                                                ['is_active']
+                                                            ? Text(
+                                                                "INACTIVE",
+                                                                style: TextStyle(
+                                                                    fontSize:
+                                                                        14,
+                                                                    color: CupertinoColors
+                                                                        .destructiveRed,
+                                                                    fontFamily:
+                                                                        'SFPro',
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .w400),
+                                                              )
+                                                            : SizedBox()
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
                                             ],
                                           ),
-                                        ],
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                ),
-                              ));
+                                  ));
                         },
-                        itemCount: active_users.length,
+                        itemCount: users.length + 1,
                       ),
                     ),
-                    SizedBox(height: 20),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 20),
-                      child: Row(
-                        children: [
-                          Text(
-                            "Inactive Users",
-                            style: TextStyle(
-                                fontSize: 18,
-                                color: CupertinoColors.systemGrey,
-                                fontFamily: 'SFPro',
-                                fontWeight: FontWeight.w400),
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: 20),
-                    Container(
-                      height: 120 * inactive_users.length.toDouble(),
-                      child: ListView(
-                        shrinkWrap: true,
-                        physics: BouncingScrollPhysics(),
-                        children: inactive_users.map((user) {
-                          return Container(
-                            margin: EdgeInsets.only(top: 10),
-                            padding: EdgeInsets.all(10),
-                            // add a margin bottom
-                            decoration: BoxDecoration(
-                                border: Border(
-                                    bottom: BorderSide(
-                              color: CupertinoColors.white.withOpacity(.2),
-                              width: 1,
-                            ))),
-                            child: GestureDetector(
-                              onTap: () {
-                                Navigator.push(
-                                    context,
-                                    CupertinoPageRoute(
-                                        builder: (context) => ShowInfo(
-                                              userid: user[0],
-                                            )));
-                              },
-                              child: Container(
-                                height: 60,
-                                width: MediaQuery.of(context).size.width - 40,
-                                decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(10)),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    Container(
-                                      child: CircleAvatar(
-                                          radius: 40,
-                                          backgroundColor:
-                                              CupertinoColors.white,
-                                          child: user[1] != Null
-                                              ? CachedNetworkImage(
-                                                  imageUrl:
-                                                      "https://backend.aurum.fitness/" +
-                                                          user[1],
-                                                  imageBuilder: (context,
-                                                          imageProvider) =>
-                                                      Container(
-                                                    width: 80.0,
-                                                    height: 80.0,
-                                                    decoration: BoxDecoration(
-                                                      shape: BoxShape.circle,
-                                                      image: DecorationImage(
-                                                          image: imageProvider,
-                                                          fit: BoxFit.cover),
-                                                    ),
-                                                  ),
-                                                  placeholder: (context, url) =>
-                                                      CupertinoActivityIndicator(
-                                                    color: CupertinoColors
-                                                        .darkBackgroundGray,
-                                                  ),
-                                                  errorWidget: (context, url,
-                                                          error) =>
-                                                      Icon(CupertinoIcons
-                                                          .exclamationmark_circle),
-                                                )
-                                              : CircleAvatar(
-                                                  radius: 48,
-                                                  backgroundImage: NetworkImage(
-                                                      "https://backend.aurum.fitness/media/" +
-                                                          "ntf.png"),
-                                                )),
-                                    ),
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Container(
-                                          margin: EdgeInsets.only(left: 20),
-                                          child: Text(
-                                            user[0],
-                                            style: TextStyle(
-                                                fontSize: 18,
-                                                color:
-                                                    CupertinoColors.systemGrey,
-                                                fontFamily: 'SFPro',
-                                                fontWeight: FontWeight.w400),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    ),
+                    SizedBox(
+                      height: 20,
+                    )
                   ],
                 ),
               ),
