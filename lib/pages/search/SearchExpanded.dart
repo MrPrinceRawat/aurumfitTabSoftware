@@ -44,16 +44,20 @@ class _SearchExpandedState extends ConsumerState<SearchExpanded> {
       _debounce!.cancel();
     }
 
-    _debounce = Timer(Duration(milliseconds: 500), () {
+    _debounce = Timer(Duration(milliseconds: 500), () async {
       setState(() {
         this.searchText = searchText;
         offset = 0;
       });
-      findUser();
+
+      var users = await findUser();
+      setState(() {
+        this.users = users;
+      });
     });
   }
 
-  Future<void> findUser() async {
+  Future<dynamic> findUser() async {
     // Make a POST request to aurumfitnesscommunicator.ml to get the user list
     var url = Uri.parse(
         'https://backend.aurum.fitness/auth/getUser/v2/?limit=50&offset=$offset');
@@ -62,10 +66,10 @@ class _SearchExpandedState extends ConsumerState<SearchExpanded> {
     }, headers: {
       "Authorization": "Token $token",
     });
-    var users = jsonDecode(response.body);
-    setState(() {
-      this.users += users;
-    });
+    if (response.statusCode != 200) {
+      throw Exception("Cannot Fetch Users");
+    }
+    return jsonDecode(response.body);
   }
 
   markAtten(user) async {
@@ -177,11 +181,14 @@ class _SearchExpandedState extends ConsumerState<SearchExpanded> {
                               ? CupertinoButton(
                                   padding: EdgeInsets.only(top: 10),
                                   child: Text("Load More"),
-                                  onPressed: () {
+                                  onPressed: () async {
                                     setState(() {
                                       offset += 20;
                                     });
-                                    findUser();
+                                    var users = await findUser();
+                                    setState(() {
+                                      this.users += users;
+                                    });
                                   })
                               : Slidable(
                                   startActionPane: ActionPane(
