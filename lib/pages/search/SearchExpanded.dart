@@ -6,6 +6,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'dart:convert';
@@ -75,39 +76,23 @@ class _SearchExpandedState extends ConsumerState<SearchExpanded> {
   markAtten(user) async {
     var status = await markUserAttendance(user, token);
     if (status["error"]) {
-      showCupertinoDialog(
-          context: context,
-          builder: (context) {
-            return CupertinoAlertDialog(
-              title: Text("Error"),
-              content: Text(status["message"]),
-              actions: [
-                CupertinoDialogAction(
-                  child: Text("Ok"),
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                )
-              ],
-            );
-          });
+      Fluttertoast.showToast(
+          msg: status["message"],
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 1,
+          backgroundColor: CupertinoColors.systemRed,
+          textColor: CupertinoColors.white,
+          fontSize: 16.0);
     } else {
-      showCupertinoDialog(
-          context: context,
-          builder: (context) {
-            return CupertinoAlertDialog(
-              title: Text("Success"),
-              content: Text("Marked attendance"),
-              actions: [
-                CupertinoDialogAction(
-                  child: Text("Ok"),
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                )
-              ],
-            );
-          });
+      Fluttertoast.showToast(
+          msg: "Attendance Marked Successfully",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 1,
+          backgroundColor: CupertinoColors.systemGreen,
+          textColor: CupertinoColors.white,
+          fontSize: 16.0);
     }
   }
 

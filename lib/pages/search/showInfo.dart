@@ -14,8 +14,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-
 import '../payments/dynamicPayment.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class ShowInfo extends ConsumerStatefulWidget {
   const ShowInfo({Key? key, required this.userid}) : super(key: key);
@@ -176,20 +176,14 @@ class _ShowInfoState extends ConsumerState<ShowInfo> {
                 ],
               ));
     } else {
-      showCupertinoDialog(
-          context: context,
-          builder: (context) => CupertinoAlertDialog(
-                title: Text("Success"),
-                content: Text(response['message']),
-                actions: [
-                  CupertinoDialogAction(
-                    child: Text("Ok"),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                  )
-                ],
-              ));
+      Fluttertoast.showToast(
+          msg: "Notification Sent",
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 1,
+          backgroundColor: CupertinoColors.black,
+          textColor: CupertinoColors.white,
+          fontSize: 16.0);
     }
   }
 
@@ -502,23 +496,15 @@ class _ShowInfoState extends ConsumerState<ShowInfo> {
                                           attendance_loading = false;
                                         });
                                         if (status["error"]) {
-                                          showCupertinoDialog(
-                                              context: context,
-                                              builder: (context) {
-                                                return CupertinoAlertDialog(
-                                                  title: Text("Error"),
-                                                  content:
-                                                      Text(status["message"]),
-                                                  actions: [
-                                                    CupertinoDialogAction(
-                                                      child: Text("Ok"),
-                                                      onPressed: () {
-                                                        Navigator.pop(context);
-                                                      },
-                                                    )
-                                                  ],
-                                                );
-                                              });
+                                          Fluttertoast.showToast(
+                                              msg: status["message"],
+                                              toastLength: Toast.LENGTH_SHORT,
+                                              gravity: ToastGravity.BOTTOM,
+                                              timeInSecForIosWeb: 1,
+                                              backgroundColor:
+                                                  CupertinoColors.systemRed,
+                                              textColor: CupertinoColors.white,
+                                              fontSize: 16.0);
                                         } else {
                                           setState(() {
                                             attendancebtn = "Marked";
