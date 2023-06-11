@@ -1,6 +1,8 @@
 import 'dart:ui';
 
 import 'package:aurumfit/domians/usermanagement/serverRelated.dart';
+import 'package:aurumfit/pages/home/components/Expired_widget.dart';
+import 'package:aurumfit/pages/home/components/payment_widget.dart';
 import 'package:aurumfit/pages/utility/CFD.dart';
 import 'package:aurumfit/components/attendance.dart';
 import 'package:aurumfit/config/backgrounds.dart';
@@ -237,52 +239,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     AttendanceWidget(),
-                    GestureDetector(
-                      onTap: (() {
-                        Navigator.push(
-                            context,
-                            CupertinoPageRoute(
-                                builder: (context) => DynamicQrCode()));
-                      }),
-                      child: ClipRRect(
-                        clipBehavior: Clip.antiAlias,
-                        child: BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 20.0, sigmaY: 20.0),
-                          child: Container(
-                            width: MediaQuery.of(context).size.width / 2.5,
-                            height: MediaQuery.of(context).size.height / 4,
-                            decoration: BoxDecoration(
-                                color: CupertinoColors.white.withOpacity(.5),
-                                borderRadius: BorderRadius.circular(20)),
-                            child: Padding(
-                              padding: const EdgeInsets.all(20.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Text(
-                                        "Make Qr Code",
-                                        style: TextStyle(
-                                            color: CupertinoColors
-                                                .darkBackgroundGray,
-                                            fontFamily: "SFPro"),
-                                      ),
-                                    ],
-                                  ),
-                                  Icon(
-                                    CupertinoIcons.qrcode_viewfinder,
-                                    color: Color.fromARGB(190, 255, 255, 255),
-                                    size: 130,
-                                  )
-                                ],
-                              ),
-                            ),
-                          ),
+                    Column(
+                      children: [
+                        DynamicPaymentWidget(),
+                        SizedBox(
+                          height: 20,
                         ),
-                      ),
-                    ),
+                        // ExpiredInvoiceWidget()
+                      ],
+                    )
                   ],
                 ),
               ),

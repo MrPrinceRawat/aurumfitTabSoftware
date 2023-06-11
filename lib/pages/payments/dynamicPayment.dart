@@ -30,7 +30,6 @@ class _DynamicQrCodeState extends ConsumerState<DynamicQrCode> {
   var plan = TextEditingController();
   var name = TextEditingController();
   var phone = TextEditingController();
-  var old = TextEditingController();
   List users = [];
   String qrCode = "";
   String orderId = "";
@@ -544,13 +543,6 @@ class _DynamicQrCodeState extends ConsumerState<DynamicQrCode> {
                             child: CupertinoTextFormFieldRow(
                               controller: phone,
                               placeholder: 'Enter Phone',
-                            ),
-                          ),
-                          CupertinoFormRow(
-                            prefix: Text('Already Paid'),
-                            child: CupertinoTextFormFieldRow(
-                              controller: old,
-                              placeholder: 'Enter Already Paid Amount',
                             ),
                           ),
                         ]),
