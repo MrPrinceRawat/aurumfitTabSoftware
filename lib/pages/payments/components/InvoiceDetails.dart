@@ -90,6 +90,51 @@ class InvoiceDetails extends ConsumerWidget {
                                   fontWeight: FontWeight.w500),
                             ),
                           ),
+                          CupertinoActionSheetAction(
+                            onPressed: () async {
+                              Navigator.pop(context);
+                              showCupertinoDialog(
+                                  context: context,
+                                  builder: (context) {
+                                    return CupertinoAlertDialog(
+                                      title: Text("Mark Invoice Expired"),
+                                      content: Text(
+                                          "Are you sure you want to mark this invoice as expired? This action cannot be undone."),
+                                      actions: [
+                                        CupertinoDialogAction(
+                                          onPressed: () {
+                                            Navigator.pop(context);
+                                          },
+                                          child: Text("Cancel"),
+                                        ),
+                                        CupertinoDialogAction(
+                                          onPressed: () async {
+                                            Navigator.pop(context);
+                                            await Billing().markInvoiceExpired(
+                                                invoice.InvoiceID,
+                                                ref
+                                                    .read(AuthTokenProvider
+                                                        .notifier)
+                                                    .state,
+                                                BillingModel(
+                                                    id: invoice.InvoiceID));
+                                            Navigator.pop(buildcontent);
+                                          },
+                                          child: Text("Mark Expired"),
+                                        )
+                                      ],
+                                    );
+                                  });
+                            },
+                            child: Text(
+                              "Mark Invoice Expired",
+                              style: TextStyle(
+                                  fontFamily: "SFPro",
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                  color: CupertinoColors.destructiveRed),
+                            ),
+                          ),
                         ],
                         cancelButton: CupertinoActionSheetAction(
                           onPressed: () {
