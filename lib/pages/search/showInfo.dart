@@ -134,21 +134,11 @@ class _ShowInfoState extends ConsumerState<ShowInfo> {
                   CupertinoFormRow(
                     child: CupertinoTextFormFieldRow(
                       decoration: BoxDecoration(
-                        color: Color.fromARGB(213, 255, 255, 255),
+                        color: CupertinoColors.black,
                         borderRadius: BorderRadius.circular(10.0),
                       ),
                       placeholder: "Due Amount",
                       controller: amount,
-                    ),
-                  ),
-                  CupertinoFormRow(
-                    child: CupertinoTextFormFieldRow(
-                      decoration: BoxDecoration(
-                        color: Color.fromARGB(213, 255, 255, 255),
-                        borderRadius: BorderRadius.circular(10.0),
-                      ),
-                      placeholder: "Due Date",
-                      controller: dueDate,
                     ),
                   ),
                 ],
