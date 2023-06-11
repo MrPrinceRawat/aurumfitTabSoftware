@@ -33,6 +33,7 @@ class InvoiceModel {
   late String userid;
   late String InvoiceID;
   late String date;
+  late String expiry_date;
   late double amount;
   late double amount_paid;
   late String plan;
@@ -44,6 +45,7 @@ class InvoiceModel {
       {required this.userid,
       required this.InvoiceID,
       required this.date,
+      required this.expiry_date,
       required this.amount,
       required this.amount_paid,
       required this.plan,
@@ -61,7 +63,8 @@ class InvoiceModel {
   ///
   InvoiceModel.fromJson(Map<String, dynamic> json) {
     InvoiceID = json['InvoiceID'];
-    date = json['date'];
+    date = json['created_date'];
+    expiry_date = json['expiry_date'];
     amount = json['amount'];
     amount_paid = json['amount_paid'];
     plan = json['plan'];
@@ -80,6 +83,7 @@ class InvoiceModel {
     final Map<String, dynamic> data = new Map<String, dynamic>();
     data['userid'] = this.userid;
     data['date'] = this.date;
+    data['expiry_date'] = this.expiry_date;
     data['amount'] = this.amount;
     data['amount_paid'] = this.amount_paid;
     data['plan'] = this.plan;
@@ -93,6 +97,7 @@ class InvoiceModel {
   String get getInvoiceID => InvoiceID;
   String get getUserid => userid;
   String get getDate => date;
+  String get getExpiryDate => expiry_date;
   double get getAmount => amount;
   double get getAmountPaid => amount_paid;
   String get getPlan => plan;

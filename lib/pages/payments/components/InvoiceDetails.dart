@@ -233,6 +233,44 @@ class InvoiceDetails extends ConsumerWidget {
                               color: CupertinoColors.white),
                         ),
                       ),
+                      CupertinoFormRow(
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                        prefix: Text(
+                          "Created At",
+                          style: TextStyle(
+                              fontFamily: "SFPro",
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500),
+                        ),
+                        child: Text(
+                          invoice.date,
+                          style: TextStyle(
+                              fontFamily: "SFPro",
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                              color: CupertinoColors.white),
+                        ),
+                      ),
+                      CupertinoFormRow(
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                        prefix: Text(
+                          "Expiry Date",
+                          style: TextStyle(
+                              fontFamily: "SFPro",
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500),
+                        ),
+                        child: Text(
+                          invoice.expiry_date,
+                          style: TextStyle(
+                              fontFamily: "SFPro",
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                              color: CupertinoColors.white),
+                        ),
+                      ),
                     ],
                   ),
                   SizedBox(
