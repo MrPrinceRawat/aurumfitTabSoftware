@@ -191,25 +191,7 @@ class _DynamicQrCodeState extends ConsumerState<DynamicQrCode> {
                       _loading = false;
                     });
                     going = false;
-                    showCupertinoDialog(
-                        context: context,
-                        builder: (_) {
-                          return CupertinoAlertDialog(
-                            title: Text("Success"),
-                            content: Text("Payment Successful"),
-                            actions: <Widget>[
-                              CupertinoDialogAction(
-                                child: Text("Ok"),
-                                onPressed: () {
-                                  setState(() {
-                                    qrCode = "";
-                                  });
-                                  Navigator.pop(_);
-                                },
-                              )
-                            ],
-                          );
-                        });
+                    showSuccessDialog(context);
                   }
                 });
               }
@@ -801,5 +783,52 @@ class _DynamicQrCodeState extends ConsumerState<DynamicQrCode> {
                       child: Image.network(qrCode),
                     ),
                   ));
+  }
+}
+
+void showSuccessDialog(context) {
+  showDialog(context: context, builder: (context) => FunkyOverlay());
+}
+
+class FunkyOverlay extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() => FunkyOverlayState();
+}
+
+class FunkyOverlayState extends State<FunkyOverlay>
+    with SingleTickerProviderStateMixin {
+  late AnimationController controller;
+  late Animation<double> scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+
+    controller =
+        AnimationController(vsync: this, duration: Duration(milliseconds: 450));
+    scaleAnimation =
+        CurvedAnimation(parent: controller, curve: Curves.elasticInOut);
+
+    controller.addListener(() {
+      setState(() {});
+    });
+
+    controller.forward();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Material(
+        color: Colors.transparent,
+        child: ScaleTransition(
+          scale: scaleAnimation,
+          child: Container(
+              child: Image.asset(
+            "assets/greentick-unscreen.gif",
+          )),
+        ),
+      ),
+    );
   }
 }
