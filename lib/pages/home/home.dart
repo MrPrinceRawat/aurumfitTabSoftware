@@ -172,8 +172,25 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
           child: SingleChildScrollView(
             child: Column(children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 50, left: 30, right: 20),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "Attendance Stats",
+                      style: TextStyle(
+                          fontFamily: "SFPro",
+                          letterSpacing: 1,
+                          color: Color.fromARGB(128, 0, 0, 0),
+                          fontSize: 30,
+                          fontWeight: FontWeight.w600),
+                    ),
+                  ],
+                ),
+              ),
               Container(
-                margin: EdgeInsets.only(top: 40),
+                margin: EdgeInsets.only(top: 12),
                 height: MediaQuery.of(context).size.height / 4,
                 child: ClipRRect(
                   clipBehavior: Clip.hardEdge,
@@ -245,7 +262,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         SizedBox(
                           height: 20,
                         ),
-                        // ExpiredInvoiceWidget()
+                        ExpiredInvoiceWidget()
                       ],
                     )
                   ],

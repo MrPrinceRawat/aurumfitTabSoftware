@@ -122,7 +122,8 @@ class UserManagement {
   }
 
   Future<bool> markUserInactive() async {
-    var url = Uri.parse('http://127.0.0.1:8000/auth/$userid/markInactive');
+    var url =
+        Uri.parse('https://backend.aurum.fitness/auth/$userid/markInactive');
     var status = await http.get(url, headers: {
       "Authorization": "Token $token",
     });
@@ -131,6 +132,4 @@ class UserManagement {
     }
     return false;
   }
-
-  Future get_expired_memberships() async {}
 }

@@ -224,7 +224,7 @@ getAttendancesCount(token) async {
 }
 
 getExpiredMemberships(token) async {
-  // var url = Uri.parse("http://127.0.0.1:8000/auth/getExpiredMemberships");
+  // var url = Uri.parse("https://backend.aurum.fitness/auth/getExpiredMemberships");
   var url =
       Uri.parse("https://backend.aurum.fitness/api/getExpiredMemberships");
 
