@@ -42,8 +42,9 @@ import 'package:http/http.dart' as http;
 
 class UserManagement {
   late String userid;
+  late String token;
 
-  UserManagement({required this.userid});
+  UserManagement({required this.userid, required this.token});
 
   /// This method is used to get the user data from the database.
   ///
@@ -69,7 +70,7 @@ class UserManagement {
   /// for more info on the [User] object, see [UserModel].
   ///
   ///
-  Future<User> getUserInfo(token) async {
+  Future<User> getUserInfo() async {
     var url = Uri.parse("https://backend.aurum.fitness/auth/getUserInfoStaff/");
     try {
       var response = await http.post(url, body: {
@@ -106,7 +107,7 @@ class UserManagement {
     return User(userid: userid);
   }
 
-  Future<List> getUserAttendance(token, month, year) async {
+  Future<List> getUserAttendance(month, year) async {
     var url = Uri.parse(
         'https://backend.aurum.fitness/api/user/$userid/$year/$month/getAttendance');
     var res = await http.get(url, headers: {
@@ -120,7 +121,7 @@ class UserManagement {
     }
   }
 
-  Future<bool> markUserInactive(token) async {
+  Future<bool> markUserInactive() async {
     var url = Uri.parse('http://127.0.0.1:8000/auth/$userid/markInactive');
     var status = await http.get(url, headers: {
       "Authorization": "Token $token",
@@ -130,4 +131,6 @@ class UserManagement {
     }
     return false;
   }
+
+  Future get_expired_memberships() async {}
 }

@@ -50,7 +50,7 @@ class _DynamicQrCodeState extends ConsumerState<DynamicQrCode> {
     token = ref.read(AuthTokenProvider.notifier).state;
     if (widget.userid != null) {
       _userid = widget.userid!;
-      userManagement = UserManagement(userid: _userid);
+      userManagement = UserManagement(userid: _userid, token: token);
       getUserInfo(_userid);
     } else {
       _userid = "";
@@ -62,7 +62,7 @@ class _DynamicQrCodeState extends ConsumerState<DynamicQrCode> {
       _loading = true;
     });
     try {
-      var responseData = await userManagement.getUserInfo(token);
+      var responseData = await userManagement.getUserInfo();
       setState(() {
         phone.text = responseData.Phone_number ?? "";
         name.text = responseData.name;
@@ -457,7 +457,8 @@ class _DynamicQrCodeState extends ConsumerState<DynamicQrCode> {
                                                 setState(() {
                                                   userManagement =
                                                       UserManagement(
-                                                          userid: i[0]);
+                                                          userid: i[0],
+                                                          token: token);
                                                 });
                                                 getUserInfo(i[0]);
                                               });

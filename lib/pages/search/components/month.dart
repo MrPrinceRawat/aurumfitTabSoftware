@@ -54,9 +54,10 @@ class Attendance_MonthState extends ConsumerState<AttendanceMonth> {
       dates.add(0);
     }
 
-    UserManagement(userid: widget.userid)
-        .getUserAttendance(
-            ref.read(AuthTokenProvider.notifier).state, month, year)
+    UserManagement(
+            userid: widget.userid,
+            token: ref.read(AuthTokenProvider.notifier).state)
+        .getUserAttendance(month, year)
         .then((value) {
       setState(() {
         attendance = value;

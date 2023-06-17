@@ -72,8 +72,8 @@ class _ShowInfoState extends ConsumerState<ShowInfo> {
   void initState() {
     super.initState();
     token = ref.read(AuthTokenProvider.notifier).state;
-    usermanagement = UserManagement(userid: widget.userid);
-    myFuture = usermanagement.getUserInfo(token);
+    usermanagement = UserManagement(userid: widget.userid, token: token);
+    myFuture = usermanagement.getUserInfo();
     invoice = Invoice(userid: widget.userid).getInvoice(token);
     paymentHistoryFuture = loadPaymentHistory();
     setState(() {
@@ -256,7 +256,7 @@ class _ShowInfoState extends ConsumerState<ShowInfo> {
                                         onPressed: () async {
                                           Navigator.pop(context);
                                           if (await usermanagement
-                                              .markUserInactive(token)) {
+                                              .markUserInactive()) {
                                             Fluttertoast.showToast(
                                                 msg: "User Marked Inactive",
                                                 toastLength: Toast.LENGTH_LONG,
