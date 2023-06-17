@@ -252,6 +252,40 @@ class _ShowInfoState extends ConsumerState<ShowInfo> {
                                         child:
                                             Text("Send Payment Notification"),
                                       ),
+                                      CupertinoActionSheetAction(
+                                        onPressed: () async {
+                                          Navigator.pop(context);
+                                          if (await usermanagement
+                                              .markUserInactive(token)) {
+                                            Fluttertoast.showToast(
+                                                msg: "User Marked Inactive",
+                                                toastLength: Toast.LENGTH_LONG,
+                                                gravity: ToastGravity.BOTTOM,
+                                                timeInSecForIosWeb: 1,
+                                                backgroundColor:
+                                                    CupertinoColors.black,
+                                                textColor:
+                                                    CupertinoColors.white,
+                                                fontSize: 16.0);
+                                          } else {
+                                            Fluttertoast.showToast(
+                                                msg: "Error",
+                                                toastLength: Toast.LENGTH_LONG,
+                                                gravity: ToastGravity.BOTTOM,
+                                                timeInSecForIosWeb: 1,
+                                                backgroundColor:
+                                                    CupertinoColors.black,
+                                                textColor:
+                                                    CupertinoColors.white,
+                                                fontSize: 16.0);
+                                          }
+                                          initState();
+                                        },
+                                        child: Text("Mark User Inactive",
+                                            style: TextStyle(
+                                                color: CupertinoColors
+                                                    .destructiveRed)),
+                                      ),
                                     ],
                                     cancelButton: CupertinoActionSheetAction(
                                       onPressed: () {

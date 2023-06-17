@@ -119,4 +119,15 @@ class UserManagement {
       throw Exception('Failed to load post');
     }
   }
+
+  Future<bool> markUserInactive(token) async {
+    var url = Uri.parse('http://127.0.0.1:8000/auth/$userid/markInactive');
+    var status = await http.get(url, headers: {
+      "Authorization": "Token $token",
+    });
+    if (status.statusCode == 200) {
+      return true;
+    }
+    return false;
+  }
 }
