@@ -18,6 +18,7 @@ class CalcAFS extends ConsumerStatefulWidget {
 
 class _CalcAFSState extends ConsumerState<CalcAFS> {
   var WEIGHT = TextEditingController();
+  var PHONE = TextEditingController();
   var HEIGHT = TextEditingController();
   var AGE = TextEditingController();
   var GENDER = 0;
@@ -117,6 +118,7 @@ class _CalcAFSState extends ConsumerState<CalcAFS> {
           Uri.parse("https://backend.aurum.fitness/api/setAFS/"),
           body: json.encode({
             "user": userId.text,
+            "phone": PHONE.text,
             "AFS": AFS,
             "Weight": WEIGHT.text,
             "Height": HEIGHT.text,
@@ -326,6 +328,23 @@ class _CalcAFSState extends ConsumerState<CalcAFS> {
                             fontWeight: FontWeight.w600),
                       ),
                       children: [
+                        CupertinoFormRow(
+                            prefix: Text(
+                              'Phone',
+                              style: TextStyle(
+                                  fontFamily: 'SFPro',
+                                  fontWeight: FontWeight.w500),
+                            ),
+                            child: CupertinoTextFormFieldRow(
+                              controller: PHONE,
+                              keyboardType: TextInputType.number,
+                              validator: (value) {
+                                if (value!.isEmpty) {
+                                  return "Please enter phone number";
+                                }
+                                return null;
+                              },
+                            )),
                         CupertinoFormRow(
                             prefix: Text(
                               'Weight',
