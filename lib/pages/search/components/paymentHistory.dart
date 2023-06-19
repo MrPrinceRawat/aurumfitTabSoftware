@@ -12,6 +12,7 @@ class PaymentHistoryBlock extends StatefulWidget {
 class _PaymentHistoryBlockState extends State<PaymentHistoryBlock> {
   bool expanded = false;
   late List data;
+  int dataLength = 5;
 
   @override
   void initState() {
@@ -26,7 +27,7 @@ class _PaymentHistoryBlockState extends State<PaymentHistoryBlock> {
         child: Column(
           children: [
             // Loop through the data and display the payment history
-            for (var index = 0; index < data.length; index++)
+            for (var index = 0; index < dataLength; index++)
               StatefulBuilder(
                 builder: (context, setState) {
                   return GestureDetector(
