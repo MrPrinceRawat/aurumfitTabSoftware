@@ -26,4 +26,19 @@ class Admin {
       return {"error": true, "message": "Something went wrong"};
     }
   }
+
+  Future<dynamic> findUser(searchText, offset) async {
+    // Make a POST request to aurumfitnesscommunicator.ml to get the user list
+    var url = Uri.parse(
+        'https://backend.aurum.fitness/auth/getUser/v2/?limit=50&offset=$offset');
+    var response = await http.post(url, body: {
+      'name': searchText
+    }, headers: {
+      "Authorization": "Token $token",
+    });
+    if (response.statusCode != 200) {
+      throw Exception("Cannot Fetch Users");
+    }
+    return jsonDecode(response.body);
+  }
 }

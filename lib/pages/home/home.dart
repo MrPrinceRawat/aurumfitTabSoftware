@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:aurumfit/domians/usermanagement/serverRelated.dart';
 import 'package:aurumfit/pages/home/components/Expired_widget.dart';
+import 'package:aurumfit/pages/home/components/followup.dart';
 import 'package:aurumfit/pages/home/components/payment_widget.dart';
 import 'package:aurumfit/pages/utility/CFD.dart';
 import 'package:aurumfit/components/attendance.dart';
@@ -255,7 +256,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    AttendanceWidget(),
+                    Column(
+                      children: [
+                        AttendanceWidget(),
+                        SizedBox(
+                          height: 20,
+                        ),
+                        FollowUp_widget(),
+                      ],
+                    ),
                     Column(
                       children: [
                         DynamicPaymentWidget(),
