@@ -45,7 +45,7 @@ class _SearchExpandedState extends ConsumerState<SearchExpanded> {
       _debounce!.cancel();
     }
 
-    _debounce = Timer(Duration(milliseconds: 500), () async {
+    _debounce = Timer(Duration(milliseconds: 10), () async {
       setState(() {
         this.searchText = searchText;
         offset = 0;
@@ -162,7 +162,7 @@ class _SearchExpandedState extends ConsumerState<SearchExpanded> {
                         shrinkWrap: true,
                         physics: BouncingScrollPhysics(),
                         itemBuilder: (context, index) {
-                          return index == users.length
+                          return (index == users.length)
                               ? CupertinoButton(
                                   padding: EdgeInsets.only(top: 10),
                                   child: Text("Load More"),
@@ -249,49 +249,36 @@ class _SearchExpandedState extends ConsumerState<SearchExpanded> {
                                                     radius: 40,
                                                     backgroundColor:
                                                         CupertinoColors.white,
-                                                    child: users[index]
-                                                                ['pic'] !=
-                                                            Null
-                                                        ? CachedNetworkImage(
-                                                            imageUrl:
-                                                                "https://backend.aurum.fitness/" +
-                                                                    users[index]
-                                                                        ['pic'],
-                                                            imageBuilder: (context,
-                                                                    imageProvider) =>
-                                                                Container(
-                                                              width: 80.0,
-                                                              height: 80.0,
-                                                              decoration:
-                                                                  BoxDecoration(
-                                                                shape: BoxShape
-                                                                    .circle,
-                                                                image: DecorationImage(
-                                                                    image:
-                                                                        imageProvider,
-                                                                    fit: BoxFit
-                                                                        .cover),
-                                                              ),
-                                                            ),
-                                                            placeholder: (context,
-                                                                    url) =>
-                                                                CupertinoActivityIndicator(
-                                                              color: CupertinoColors
-                                                                  .darkBackgroundGray,
-                                                            ),
-                                                            errorWidget: (context,
-                                                                    url,
-                                                                    error) =>
-                                                                Icon(CupertinoIcons
-                                                                    .exclamationmark_circle),
-                                                          )
-                                                        : CircleAvatar(
-                                                            radius: 48,
-                                                            backgroundImage:
-                                                                NetworkImage(
-                                                                    "https://backend.aurum.fitness/media/" +
-                                                                        "ntf.png"),
-                                                          )),
+                                                    child: CachedNetworkImage(
+                                                      imageUrl:
+                                                          "https://api.dicebear.com/7.x/initials/png?seed=${users[index]['username']}&fontSize=31",
+                                                      imageBuilder: (context,
+                                                              imageProvider) =>
+                                                          Container(
+                                                        width: 80.0,
+                                                        height: 80.0,
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          shape:
+                                                              BoxShape.circle,
+                                                          image: DecorationImage(
+                                                              image:
+                                                                  imageProvider,
+                                                              fit:
+                                                                  BoxFit.cover),
+                                                        ),
+                                                      ),
+                                                      placeholder: (context,
+                                                              url) =>
+                                                          CupertinoActivityIndicator(
+                                                        color: CupertinoColors
+                                                            .darkBackgroundGray,
+                                                      ),
+                                                      errorWidget: (context,
+                                                              url, error) =>
+                                                          Icon(CupertinoIcons
+                                                              .exclamationmark_circle),
+                                                    )),
                                               ),
                                               Row(
                                                 mainAxisAlignment:

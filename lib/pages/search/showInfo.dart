@@ -4,6 +4,7 @@ import 'package:aurumfit/domians/payments/models/Invoice.dart';
 import 'package:aurumfit/domians/usermanagement/models/models.dart';
 import 'package:aurumfit/domians/usermanagement/serverRelated.dart';
 import 'package:aurumfit/domians/usermanagement/user_management.dart';
+import 'package:aurumfit/pages/search/components/AFSBlock.dart';
 import 'package:aurumfit/pages/search/components/InvoiceBlock.dart';
 import 'package:aurumfit/pages/search/components/UserAttendance.dart';
 import 'package:aurumfit/pages/search/components/paymentHistory.dart';
@@ -29,6 +30,12 @@ class ShowInfo extends ConsumerStatefulWidget {
 class _ShowInfoState extends ConsumerState<ShowInfo> {
   late Future myFuture;
   var _loading = false;
+  // bool _isFieldChanged = false;
+  // TextEditingController _nameController = TextEditingController();
+  // TextEditingController _phoneController = TextEditingController();
+  // TextEditingController _addressController = TextEditingController();
+  // TextEditingController _dobController = TextEditingController();
+  // TextEditingController _genderController = TextEditingController();
   var attendance_loading = false;
   var paymentHistoryLoading = false;
   var paymentHistory = [];
@@ -79,7 +86,18 @@ class _ShowInfoState extends ConsumerState<ShowInfo> {
     setState(() {
       userid = widget.userid;
     });
+    // _nameController.addListener(_onFieldChanged);
+    // _genderController.addListener(_onFieldChanged);
+    // _phoneController.addListener(_onFieldChanged);
+    // _addressController.addListener(_onFieldChanged);
+    // _dobController.addListener(_onFieldChanged);
   }
+
+  // void _onFieldChanged() {
+  //   setState(() {
+  //     _isFieldChanged = true;
+  //   });
+  // }
 
   handleImageChange() async {
     var image =
@@ -185,6 +203,21 @@ class _ShowInfoState extends ConsumerState<ShowInfo> {
           textColor: CupertinoColors.white,
           fontSize: 16.0);
     }
+  }
+
+  // displose the controllers
+  @override
+  void dispose() {
+    username.dispose();
+    password.dispose();
+    amount.dispose();
+    dueDate.dispose();
+    // _nameController.dispose();
+    // _phoneController.dispose();
+    // _addressController.dispose();
+    // _genderController.dispose();
+    // _dobController.dispose();
+    super.dispose();
   }
 
   @override
@@ -375,101 +408,107 @@ class _ShowInfoState extends ConsumerState<ShowInfo> {
                             height: 10,
                           ),
                           CupertinoFormSection.insetGrouped(
-                              // backgroundColor:
-                              //     CupertinoColors.lightBackgroundGray,
-                              header: Text(
-                                'User Info',
-                                style: TextStyle(
-                                    fontFamily: 'SFPro',
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w600),
+                            header: Text(
+                              'User Info',
+                              style: TextStyle(
+                                fontFamily: 'SFPro',
+                                fontSize: 20,
+                                fontWeight: FontWeight.w600,
                               ),
-                              children: [
-                                CupertinoFormRow(
-                                  prefix: Text(
-                                    'Username: ',
-                                    style: TextStyle(
-                                        fontFamily: 'SFPro',
-                                        fontWeight: FontWeight.w500),
-                                  ),
-                                  child: CupertinoTextFormFieldRow(
-                                    textAlign: TextAlign.left,
-                                    readOnly: true,
-                                    controller: TextEditingController(
-                                        text: snapshot.data.userid),
+                            ),
+                            children: [
+                              CupertinoFormRow(
+                                prefix: Text(
+                                  'Username: ',
+                                  style: TextStyle(
+                                    fontFamily: 'SFPro',
+                                    fontWeight: FontWeight.w500,
                                   ),
                                 ),
-                                CupertinoFormRow(
-                                  prefix: Text(
-                                    'Name: ',
-                                    style: TextStyle(
-                                        fontFamily: 'SFPro',
-                                        fontWeight: FontWeight.w500),
-                                  ),
-                                  child: CupertinoTextFormFieldRow(
-                                    textAlign: TextAlign.left,
-                                    readOnly: true,
-                                    controller: TextEditingController(
-                                        text: snapshot.data.name),
+                                child: CupertinoTextFormFieldRow(
+                                  textAlign: TextAlign.left,
+                                  readOnly: false, // Set readOnly to false
+                                  controller: TextEditingController(
+                                      text: snapshot.data.userid),
+                                ),
+                              ),
+                              CupertinoFormRow(
+                                prefix: Text(
+                                  'Name: ',
+                                  style: TextStyle(
+                                    fontFamily: 'SFPro',
+                                    fontWeight: FontWeight.w500,
                                   ),
                                 ),
-                                CupertinoFormRow(
-                                  prefix: Text(
-                                    'Phone: ',
-                                    style: TextStyle(
-                                        fontFamily: 'SFPro',
-                                        fontWeight: FontWeight.w500),
-                                  ),
-                                  child: CupertinoTextFormFieldRow(
-                                    textAlign: TextAlign.left,
-                                    readOnly: true,
-                                    controller: TextEditingController(
-                                        text: snapshot.data.Phone_number),
+                                child: CupertinoTextFormFieldRow(
+                                  textAlign: TextAlign.left,
+                                  readOnly: false, // Set readOnly to false
+                                  controller: TextEditingController(
+                                      text: snapshot.data.name),
+                                ),
+                              ),
+                              CupertinoFormRow(
+                                prefix: Text(
+                                  'Phone: ',
+                                  style: TextStyle(
+                                    fontFamily: 'SFPro',
+                                    fontWeight: FontWeight.w500,
                                   ),
                                 ),
-                                CupertinoFormRow(
-                                  prefix: Text(
-                                    'Address: ',
-                                    style: TextStyle(
-                                        fontFamily: 'SFPro',
-                                        fontWeight: FontWeight.w500),
-                                  ),
-                                  child: CupertinoTextFormFieldRow(
-                                    textAlign: TextAlign.left,
-                                    readOnly: true,
-                                    controller: TextEditingController(
-                                        text: snapshot.data!.Address),
+                                child: CupertinoTextFormFieldRow(
+                                  textAlign: TextAlign.left,
+                                  readOnly: false, // Set readOnly to false
+                                  controller: TextEditingController(
+                                      text: snapshot.data.Phone_number),
+                                ),
+                              ),
+                              CupertinoFormRow(
+                                prefix: Text(
+                                  'Address: ',
+                                  style: TextStyle(
+                                    fontFamily: 'SFPro',
+                                    fontWeight: FontWeight.w500,
                                   ),
                                 ),
-                                CupertinoFormRow(
-                                  prefix: Text(
-                                    'Date of Birth: ',
-                                    style: TextStyle(
-                                        fontFamily: 'SFPro',
-                                        fontWeight: FontWeight.w500),
-                                  ),
-                                  child: CupertinoTextFormFieldRow(
-                                    textAlign: TextAlign.left,
-                                    readOnly: true,
-                                    controller: TextEditingController(
-                                        text: snapshot.data!.dob),
+                                child: CupertinoTextFormFieldRow(
+                                  textAlign: TextAlign.left,
+                                  readOnly: false, // Set readOnly to false
+                                  controller: TextEditingController(
+                                      text: snapshot.data!.Address),
+                                ),
+                              ),
+                              CupertinoFormRow(
+                                prefix: Text(
+                                  'Date of Birth: ',
+                                  style: TextStyle(
+                                    fontFamily: 'SFPro',
+                                    fontWeight: FontWeight.w500,
                                   ),
                                 ),
-                                CupertinoFormRow(
-                                  prefix: Text(
-                                    'Gender: ',
-                                    style: TextStyle(
-                                        fontFamily: 'SFPro',
-                                        fontWeight: FontWeight.w500),
-                                  ),
-                                  child: CupertinoTextFormFieldRow(
-                                    textAlign: TextAlign.left,
-                                    readOnly: true,
-                                    controller: TextEditingController(
-                                        text: snapshot.data!.gender),
+                                child: CupertinoTextFormFieldRow(
+                                  textAlign: TextAlign.left,
+                                  readOnly: false, // Set readOnly to false
+                                  controller: TextEditingController(
+                                      text: snapshot.data!.dob),
+                                ),
+                              ),
+                              CupertinoFormRow(
+                                prefix: Text(
+                                  'Gender: ',
+                                  style: TextStyle(
+                                    fontFamily: 'SFPro',
+                                    fontWeight: FontWeight.w500,
                                   ),
                                 ),
-                              ]),
+                                child: CupertinoTextFormFieldRow(
+                                  textAlign: TextAlign.left,
+                                  readOnly: false, // Set readOnly to false
+                                  controller: TextEditingController(
+                                      text: snapshot.data!.gender),
+                                ),
+                              ),
+                            ],
+                          ),
                           SizedBox(
                             height: 20,
                           ),
@@ -571,6 +610,26 @@ class _ShowInfoState extends ConsumerState<ShowInfo> {
                           SizedBox(
                             height: 30,
                           ),
+                          // Padding(
+                          //   padding: const EdgeInsets.only(left: 20, right: 20),
+                          //   child: Row(children: [
+                          //     Text(
+                          //       "AFS",
+                          //       style: TextStyle(
+                          //           fontFamily: 'SFPro',
+                          //           fontSize: 20,
+                          //           color: Color.fromARGB(217, 255, 255, 255),
+                          //           fontWeight: FontWeight.w600),
+                          //     ),
+                          //   ]),
+                          // ),
+                          // SizedBox(
+                          //   height: 15,
+                          // ),
+                          // AFSBlock(),
+                          // SizedBox(
+                          //   height: 30,
+                          // ),
                           Padding(
                             padding: const EdgeInsets.only(left: 20, right: 20),
                             child: Row(

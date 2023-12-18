@@ -171,12 +171,16 @@ class _MemberSignUpPageState extends ConsumerState<MemberSignUpPage> {
                     child: Text('Yes'),
                     onPressed: () {
                       Navigator.pop(_);
-                      Navigator.push(context,
-                          CupertinoPageRoute(builder: (context) {
-                        return DynamicQrCode(
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        CupertinoPageRoute(builder: (context) {
+                          return DynamicQrCode(
                             userid:
-                                "${_firstNameController.text}_${_lastNameController.text}_${_phoneNumberController.text}");
-                      }));
+                                "${_firstNameController.text}_${_lastNameController.text}_${_phoneNumberController.text}",
+                          );
+                        }),
+                        (route) => false, // Remove all the current pages
+                      );
                     },
                   ),
                 ],
@@ -381,46 +385,47 @@ class _MemberSignUpPageState extends ConsumerState<MemberSignUpPage> {
                                           controller: _dateController,
                                           onTap: () {
                                             showCupertinoModalPopup(
-                                                context: context,
-                                                builder: (context) {
-                                                  return Container(
-                                                    height:
-                                                        MediaQuery.of(context)
-                                                                .size
-                                                                .height /
-                                                            1.5,
-                                                    decoration: BoxDecoration(
-                                                        color: Colors.black,
-                                                        borderRadius:
-                                                            BorderRadius.only(
-                                                                topLeft: Radius
-                                                                    .circular(
-                                                                        20),
-                                                                topRight: Radius
-                                                                    .circular(
-                                                                        20))),
-                                                    child: CupertinoDatePicker(
-                                                      mode:
-                                                          CupertinoDatePickerMode
-                                                              .date,
-                                                      initialDateTime:
-                                                          DateTime.now(),
-                                                      onDateTimeChanged:
-                                                          (DateTime newdate) {
-                                                        setState(() {
-                                                          var formatter =
-                                                              new DateFormat(
-                                                                  'yyyy/MM/dd');
-                                                          _dateController.text =
-                                                              formatter.format(
-                                                                  newdate);
-                                                          print(_dateController
-                                                              .text);
-                                                        });
-                                                      },
+                                              context: context,
+                                              builder: (context) {
+                                                return Container(
+                                                  height: MediaQuery.of(context)
+                                                          .size
+                                                          .height /
+                                                      1.8,
+                                                  decoration: BoxDecoration(
+                                                    color: CupertinoColors
+                                                        .darkBackgroundGray,
+                                                    borderRadius:
+                                                        BorderRadius.only(
+                                                      topLeft:
+                                                          Radius.circular(20),
+                                                      topRight:
+                                                          Radius.circular(20),
                                                     ),
-                                                  );
-                                                });
+                                                  ),
+                                                  child: CupertinoDatePicker(
+                                                    mode:
+                                                        CupertinoDatePickerMode
+                                                            .date,
+                                                    initialDateTime:
+                                                        DateTime.now(),
+                                                    onDateTimeChanged:
+                                                        (DateTime newdate) {
+                                                      setState(() {
+                                                        var formatter =
+                                                            new DateFormat(
+                                                                'yyyy/MM/dd');
+                                                        _dateController.text =
+                                                            formatter.format(
+                                                                newdate);
+                                                        print(_dateController
+                                                            .text);
+                                                      });
+                                                    },
+                                                  ),
+                                                );
+                                              },
+                                            );
                                           },
                                         )),
                                   ]),

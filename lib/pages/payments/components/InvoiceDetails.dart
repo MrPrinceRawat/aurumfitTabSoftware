@@ -361,12 +361,9 @@ class InvoiceDetails extends ConsumerWidget {
                                                           .activeGreen,
                                                     ),
                                                   )
-                                                : Icon(
-                                                    CupertinoIcons
-                                                        .creditcard_fill,
-                                                    color: CupertinoColors
-                                                        .activeBlue,
-                                                  )
+                                                : Image.asset(
+                                                    "assets/icon/upi.png",
+                                                    width: 24)
                                             : Container(
                                                 height: 40,
                                                 width: 40,

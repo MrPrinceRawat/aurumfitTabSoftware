@@ -27,7 +27,7 @@ class _PaymentHistoryBlockState extends State<PaymentHistoryBlock> {
         child: Column(
           children: [
             // Loop through the data and display the payment history
-            for (var index = 0; index < dataLength; index++)
+            for (var index = 0; index < data.length; index++)
               StatefulBuilder(
                 builder: (context, setState) {
                   return GestureDetector(
